@@ -1,0 +1,8 @@
+Error messages need to be rethought.  Rather than supporting
+internationalization internally, let the messages always be generated
+externally and passed in.  That means that validators should have a
+'msg' keyword argument.
+
+
+
+
