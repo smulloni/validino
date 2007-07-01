@@ -121,19 +121,6 @@ def compose(*validators):
         return value
     return f
 
-def any(*validators):
-    last_exception=None
-    def f(value):
-        for v in validators:
-            try:
-                value=v(value)
-            except ValueError, e:
-                last_exception=e
-            else:
-                return value
-        raise last_exception
-    return f
-
 def empty():
     def f(value):
         if value=='':
@@ -164,7 +151,7 @@ def length(min=None, max=None):
         return value
     return f
 
-def in_domain(domain):
+def one_of(domain):
     def f(value):
         if value in domain:
             return value
