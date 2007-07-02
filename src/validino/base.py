@@ -319,9 +319,10 @@ def regex(pat, msg=None):
                                'regex',
                                "does not match pattern"))
         return value
+    return f
 
 def regex_sub(pat, sub):
     def f(value):
-        return re.sub(pat, value, sub)
+        return re.sub(pat, sub, value)
     return f
 

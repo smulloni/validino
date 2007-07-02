@@ -158,10 +158,15 @@ def test_parse_time():
     
 
 def test_regex():
-    pass
+    v=V.regex('shrubbery\d{3}$', 'regex')
+    assert v('shrubbery222')=='shrubbery222'
+    _assert_invalid(lambda: v('buy a shrubbery333, ok?'), 'regex')
 
 def test_regex_sub():
-    pass
+    v=V.regex_sub('shrubbery', 'potted plant')
+    res=v('a shrubbery would be nice')
+    assert res=='a potted plant would be nice'
+
 
 def test_schema():
     pass
