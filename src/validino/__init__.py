@@ -45,9 +45,9 @@ def dict_decode(data, separator='.'):
     for k in data:
         levels=k.split(separator)
         d=res
-        for k in levels[:-1]:
-            d.setdefault(k, {})
-            d=d[k]
+        for k1 in levels[:-1]:
+            d.setdefault(k1, {})
+            d=d[k1]
         d[levels[-1]]=data[k]
     return res
 
