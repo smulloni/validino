@@ -102,6 +102,11 @@ class Invalid(ValueError):
         return result
 
 def schema(validators, msg=None):
+    """
+    validate a dictionary of data according
+    to a dictionary of validators that match according
+    to key.
+    """
     def f(data):
         res={}
         exceptions={}

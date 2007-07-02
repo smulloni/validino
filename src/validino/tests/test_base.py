@@ -168,8 +168,35 @@ def test_regex_sub():
     assert res=='a potted plant would be nice'
 
 
-def test_schema():
-    pass
+def test_schema_1():
+    s=V.schema(
+        dict(username=(V.strip,
+                       V.regex('[a-z][a-z0-9]+', 'invalid username'),
+                       V.clamp_length(max=16,
+                                      msg='username is too long'),
+                       ),
+             user_id=V.either(V.empty(),
+                              V.compose(V.integer('not an integer'),
+                                        V.clamp(min=1, max=9999, msg='out of range')
+                                        )
+                              ),
+             department=(V.strip,
+                         V.belongs(['interactive', 'programming'],
+                                   'department not recognized')
+                         )
+             ),
+        "there were errors with your submission"
+        )
+    data=dict(username='jsmullyan',
+              user_id='1',
+              department='interactive')
+    newdata=s(data)
+    assert data['username']==newdata['username']
+    assert int(data['user_id'])==newdata['user_id']
+    assert data['department']==newdata['department']
+    
+    
+        
 
 def test_strip():
     assert V.strip('   foo   ')=='foo'
