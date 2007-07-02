@@ -46,8 +46,6 @@ def _msg(msg, key, default):
         return msg
     return msg.get(key, default)
 
-    
-
          
 def dict_nest(data, separator='.'):
     """
@@ -101,8 +99,6 @@ class Invalid(ValueError):
                 except AttributeError:
                     result[name]=exc
         return result
-
-
 
 def schema(validators, msg=None):
     def f(data):

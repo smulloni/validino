@@ -1,45 +1,34 @@
 import validino as V
 
+def _assert_invalid(f, msg):
+    try:
+        f()
+    except V.Invalid, e:
+        assert e.message==msg
+    else:
+        assert False, "exception should be raised"
+
     
 def test_clamp():
     msg='You are a pear'
     v=V.clamp(min=30, msg=msg)
     assert v(50)==50
-    try:
-        v(20)
-    except V.Invalid, e:
-        assert e.message==msg
-    else:
-        assert False, "exception should be raised"
+    _assert_invalid(lambda: v(20), msg)
 
     v=V.clamp(max=100, msg=dict(min='haha', max='kong'))
     assert v(40)==40
-    try:
-        v(120)
-    except V.Invalid, e:
-        assert e.message=='kong'
-    else:
-        assert False, "exception should be raised"
+    _assert_invalid(lambda: v(120), 'kong')
+
 
 def test_clamp_length():
     msg='You are a pear'
     v=V.clamp_length(min=3, msg=msg)
     assert v('500')=='500'
-    try:
-        v('eh')
-    except V.Invalid, e:
-        assert e.message==msg
-    else:
-        assert False, "exception should be raised"
-
+    _assert_invalid(lambda: v('eh'), msg)
     v=V.clamp_length(max=10, msg=dict(minlen='haha', maxlen='kong'))
     assert v('40')=='40'
-    try:
-        v('I told you that Ronald would eat it when you were in the bathroom')
-    except V.Invalid, e:
-        assert e.message=='kong'
-    else:
-        assert False, "exception should be raised"
+    _assert_invalid(lambda: v('I told you that Ronald would eat it when you were in the bathroom'), 'kong')
+    
 
 def test_compose():
     pass
@@ -72,24 +61,18 @@ def test_either():
     v=V.either(V.empty(), V.integer(msg="please enter an integer"))
     assert v('')==''
     assert v('40')==40
-    try:
-        v('bonk')
-    except V.Invalid, e:
-        assert e.message==msg
+    _assert_invalid(lambda: v('bonk'), msg)
 
 
 def test_empty():
     v=V.empty(msg="scorch me")
     assert v('')==''
-    try:
-        v("bob")
-    except V.Invalid, e:
-        assert e.message=='scorch me'
-    else:
-        assert False, "expected an exception to be raised"
+    _assert_invalid(lambda: v("bob"), 'scorch me')
     
 def test_equal():
-    pass
+    v=V.equal('egg', msg="not equal")
+    assert v('egg')=='egg'
+    _assert_invalid(lambda: v('bob'), 'not equal')
 
 def test_not_equal():
     pass
@@ -117,7 +100,10 @@ def test_not_empty():
         assert False, "expected an exception to be raised"
 
 def test_belongs():
-    pass
+    msg="rinse me a robot"
+    v=V.belongs('pinko widget frog lump'.split(), msg=msg)
+    assert v('pinko')=='pinko'
+
 
 def test_not_belongs():
     pass
