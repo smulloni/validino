@@ -12,6 +12,27 @@ except ImportError:
             return func(*(args + _args), **d)
         return inner            
 
+__all__=['Invalid',
+         'NoDefault',
+         'compose',
+         'default',
+         'dict_decode',
+         'dict_encode',
+         'either',
+         'empty',
+         'integer',
+         'length',
+         'not_empty',
+         'one_of',
+         'parse_date',
+         'parse_datetime',
+         'parse_time',
+         'partial',
+         'regex',
+         'regex_sub',
+         'schema',
+         'strip']
+
          
 def dict_decode(data, separator='.'):
     """
