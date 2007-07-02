@@ -171,7 +171,8 @@ def test_regex_sub():
 def test_schema_1():
     s=V.schema(
         dict(username=(V.strip,
-                       V.regex('[a-z][a-z0-9]+', 'invalid username'),
+                       V.regex('[a-z][a-z0-9]+',
+                               'invalid username'),
                        V.clamp_length(max=16,
                                       msg='username is too long'),
                        ),
