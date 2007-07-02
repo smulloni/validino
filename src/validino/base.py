@@ -12,6 +12,7 @@ __all__=['Invalid',
          'either',
          'empty',
          'equal',
+         'fields_match',
          'not_equal',
          'integer',
          'not_empty',
@@ -333,3 +334,15 @@ def regex_sub(pat, sub):
         return re.sub(pat, sub, value)
     return f
 
+def fields_match(name1, name2, msg=None):
+    """
+    verifies that the values associated with the keys 'name1' and
+    'name2' in value (which must be a dict) are identical.
+    """
+    def f(value):
+        if value[name1]!=value[name2]:
+            raise Invalid(_msg(msg,
+                               'fields_match',
+                               'fields do not match'))
+        return value
+    return f

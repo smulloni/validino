@@ -206,3 +206,11 @@ def test_strip():
 
     
     
+def test_fields_match():
+    d=dict(foo=3,
+           goo=3,
+           poo=56)
+    v=V.fields_match('foo', 'goo')
+    assert d==v(d)
+    v=V.fields_match('foo', 'poo', 'oink')
+    _assert_invalid(lambda: v(d), 'oink')
