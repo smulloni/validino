@@ -31,7 +31,23 @@ def test_clamp_length():
     
 
 def test_compose():
-    pass
+    messages=dict(integer='please enter an integer',
+                  belongs='invalid choice',
+                  min='too small',
+                  max='too big')
+    v=V.compose(V.default(40),
+                V.strip,
+                V.integer(msg=messages),
+                V.belongs(range(4, 100, 4), messages),
+                V.clamp(min=20, max=50, msg=messages))
+    assert v(None)==40
+    assert v('40')==40
+    assert v('44  ')==44
+    _assert_invalid(lambda: v(' prick '), messages['integer'])
+    _assert_invalid(lambda: v(' 41  '), messages['belongs'])
+    _assert_invalid(lambda: v('96'), messages['max'])
+    _assert_invalid(lambda: v('8'), messages['min'])
+    
 
 def test_default():
     v=V.default("pong")
@@ -75,7 +91,9 @@ def test_equal():
     _assert_invalid(lambda: v('bob'), 'not equal')
 
 def test_not_equal():
-    pass
+    v=V.not_equal('egg', msg='equal')
+    assert v('plop')=='plop'
+    _assert_invalid(lambda: v('egg'), 'equal')
 
 def test_integer():
     msg="please enter an integer"
