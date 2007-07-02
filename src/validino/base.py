@@ -2,16 +2,6 @@ import datetime
 import re
 import time
 
-## try:
-##     from functools import partial
-## except ImportError:
-##     def partial(func, *args, **kw):
-##         def inner(*_args, **_kw):
-##             d = kw.copy()
-##             d.update(_kw)
-##             return func(*(args + _args), **d)
-##         return inner            
-
 __all__=['Invalid',
          'clamp',
          'clamp_length',
@@ -30,7 +20,6 @@ __all__=['Invalid',
          'parse_date',
          'parse_datetime',
          'parse_time',
-#         'partial',
          'regex',
          'regex_sub',
          'schema',
