@@ -2,44 +2,57 @@ import datetime
 import re
 import time
 
-try:
-    from functools import partial
-except ImportError:
-    def partial(func, *args, **kw):
-        def inner(*_args, **_kw):
-            d = kw.copy()
-            d.update(_kw)
-            return func(*(args + _args), **d)
-        return inner            
+## try:
+##     from functools import partial
+## except ImportError:
+##     def partial(func, *args, **kw):
+##         def inner(*_args, **_kw):
+##             d = kw.copy()
+##             d.update(_kw)
+##             return func(*(args + _args), **d)
+##         return inner            
 
 __all__=['Invalid',
-         'NoDefault',
+         'clamp',
+         'clamp_length',
          'compose',
          'default',
-         'dict_decode',
-         'dict_encode',
+         'dict_nest',
+         'dict_unnest',
          'either',
          'empty',
+         'equal',
+         'not_equal',
          'integer',
-         'length',
          'not_empty',
-         'one_of',
+         'belongs',
          'parse_date',
          'parse_datetime',
          'parse_time',
-         'partial',
+#         'partial',
          'regex',
          'regex_sub',
          'schema',
          'strip']
 
-         
-def dict_decode(data, separator='.'):
+
+def _msg(msg, key, default):
     """
+    internal message-handling routine.
+    """
+    if msg is None:
+        return default
+    if isinstance(msg, basestring):
+        return msg
+    return msg.get(key, default)
+
     
+
+         
+def dict_nest(data, separator='.'):
+    """
     takes a flat dictionary with string keys and turns it into a
     nested one by splitting keys on the given separator.
-    
     """
     res={}
     for k in data:
@@ -51,14 +64,19 @@ def dict_decode(data, separator='.'):
         d[levels[-1]]=data[k]
     return res
 
-def dict_encode(data, separator='.'):
+def dict_unnest(data, separator='.'):
     """
-    the inverse operation of dict_decode.
+    takes a dictionary with string keys and values which may be either
+    such dictionaries or non-dictionary values, and turns them into a
+    flat dictionary with keys consisting of paths into the nested
+    structure, with path elements delimited by the given separator.
+
+    This is the inverse operation of dict_nest().
     """
     res={}
     for k, v in data.iteritems():
         if isinstance(v, dict):
-            v=dict_encode(v, separator)
+            v=dict_unnest(v, separator)
             for k1, v1 in v.iteritems():
                 res["%s%s%s" % (k, separator, k1)]=v1
         else:
@@ -72,6 +90,7 @@ class Invalid(ValueError):
     def __init__(self, message, subexceptions=None):
         ValueError.__init__(self, message)
         self.subexceptions=subexceptions
+        self.message=message
 
     def unpack_errors(self):
         result={}
@@ -83,21 +102,9 @@ class Invalid(ValueError):
                     result[name]=exc
         return result
 
-    # change messages here
-    MESSAGES={}
-
-    def format_message(self):
-        return self.MESSAGES.get(self.message, self.message)
-
-    @classmethod
-    def get_exception(cls, messageKey, defaultMessage, subexceptions=None):
-        cls.MESSAGES.setdefault(messageKey, defaultMessage)
-        return cls(messageKey, subexceptions)
 
 
-class NoDefault(object): pass
-
-def schema(validators):
+def schema(validators, msg=None):
     def f(data):
         res={}
         exceptions={}
@@ -105,24 +112,35 @@ def schema(validators):
             if isinstance(vfunc, (list, tuple)):
                 vfunc=compose(*vfunc)
             try:
-                res[k]=vfunc(data.get(k, NoDefault))
+                res[k]=vfunc(data.get(k))
             except Exception, e:
                 exceptions[k]=e
         if exceptions:
-            raise Invalid.get_exception("schema_error",
-                                        "Problems were found in the submitted data.",
-                                        exceptions)
+            raise Invalid(_msg(msg,
+                               "schema_error",
+                               "Problems were found in the submitted data."),
+                          exceptions)
         return res
     return f
 
 def default(defaultValue):
+    """
+    if the value is None, return defaultValue instead.
+
+    This raises no exceptions.
+    """
     def f(value):
-        if value is NoDefault:
+        if value is None:
             return defaultValue
         return value
     return f
         
 def either(*validators):
+    """
+    Tries each of a series of validators in turn, swallowing any
+    exceptions they raise, and returns the result of the first one
+    that works.  If none work, the last exception caught is re-raised.
+    """
     last_exception=None
     def f(value):
         for v in validators:
@@ -136,51 +154,123 @@ def either(*validators):
     return f
 
 def compose(*validators):
+    """
+    Applies each of a series of validators in turn, passing the return
+    value of each to the next.  
+    """
     def f(value):
         for v in validators:
             value=v(value)
         return value
     return f
 
-def empty():
+def equal(val, msg=None):
     def f(value):
-        if value=='':
+        if value==val:
             return value
-        raise Invalid.get_exception("empty", "No value was expected")
+        raise Invalid(_msg(msg, 'eq', 'invalid value'))
     return f
 
-def not_empty():
+def not_equal(val, msg=None):
+    def f(value):
+        if value!=val:
+            return value
+        raise Invalid(_msg(msg, 'eq', 'invalid value'))
+    return f
+
+def empty(msg=None):
+    def f(value):
+        if value == '' or value is None:
+            return value
+        raise Invalid(_msg(msg,
+                           "empty",
+                           "No value was expected"))
+    return f
+
+def not_empty(msg=None):
     def f(value):
         if value!='':
             return value
-        raise Invalid('not_empty', "A non-empty value was expected")
-
-def strip():
-    def f(value):
-        return value.strip()
+        raise Invalid(_msg(msg,
+                           'notempty',
+                           "A non-empty value was expected"))
     return f
 
-def length(min=None, max=None):
+def strip(value):
+    """
+    For string/unicode input, strips the value to remove pre- or
+    postpended whitespace.  For other values, does nothing; raises no
+    exceptions.
+    """
+    try:
+        return value.strip()
+    except AttributeError:
+        return value
+
+def clamp(min=None, max=None, msg=None):
+    """
+    clamp a value between minimum and maximum values (either
+    of which are optional).
+    """
     def f(value):
-        vlen=len(value)
-        if min is not None:
-            if vlen<min:
-                raise Invalid.get_exception("min_length", "too long")
-        if max is not None:
-            if vlen >max:
-                raise Invalid.get_exception("max_length", "too short")
+        if min is not None and value < min:
+            raise Invalid(_msg(msg,
+                               "min",
+                               "value below minimum"))
+        if max is not None and value > max:
+            raise Invalid(_msg(msg,
+                               "max",
+                               "value above maximum"))
         return value
     return f
 
-def one_of(domain):
+def clamp_length(min=None, max=None, msg=None):
+    """
+    clamp a value between minimum and maximum lengths (either
+    of which are optional).
+    """
+    def f(value):
+        vlen=len(value)
+        if min is not None and vlen<min:
+                raise Invalid(_msg(msg,
+                                   "minlen",
+                                   "too long"))
+        if max is not None and vlen >max:
+                raise Invalid(_msg(msg,
+                                   "maxlen",
+                                   "too short"))
+        return value
+    return f
+
+def belongs(domain, msg=None):
+    """
+    ensures that the value belongs to the domain
+    specified.
+    """
     def f(value):
         if value in domain:
             return value
-        raise Invalid.get_exception("domain_error", "not in domain")
+        raise Invalid(_msg(msg,
+                           "belongs",
+                           "invalid choice"))
+    return f
+
+def not_belongs(domain, msg=None):
+    """
+    ensures that the value belongs to the domain
+    specified.
+    """
+    def f(value):
+        if value not in domain:
+            return value
+        raise Invalid(_msg(msg,
+                           "not_belongs",
+                           "invalid choice"))
     return f
 
 
-def parse_time(format):
+
+def parse_time(format, msg=None):
     """
     
     """
@@ -188,50 +278,53 @@ def parse_time(format):
         try:
             return time.strptime(value, format)
         except ValueError:
-            raise Invalid.get_exception('parse_time', "invalid time")
+            raise Invalid(_msg(msg,
+                               'parse_time',
+                               "invalid time"))
     return f
 
-def parse_date(format):
+def parse_date(format, msg=None):
     """
     like parse_time, but returns a datetime.date object.
     """
     
     def f(value):
-        v=parse_time(format)(value)
+        v=parse_time(format, msg)(value)
         return datetime.date(*v[:3])
     return f
 
-def parse_datetime(format):
+def parse_datetime(format, msg=None):
     """
     like parse_time, but returns a datetime.datetime object.
     """
     
     def f(value):
-        v=parse_time(format)(value)
+        v=parse_time(format, msg)(value)
         return datetime.date(*v[:6])
     return f                
 
-def integer():
+def integer(msg=None):
     def f(value):
         try:
             return int(value)
         except ValueError:
-            raise Invalid.get_exception("integer", "not an integer")
+            raise Invalid(_msg(msg,
+                               "integer",
+                               "not an integer"))
     return f
 
-def regex(pat):
-    if isinstance(pat, basestring):
-        pat=re.compile(pat)
+
+def regex(pat, msg=None):
     def f(value):
-        m=pat.match(value)
+        m=re.match(pat, value)
         if not m:
-            raise Invalid.get_exception('regex', "does not match pattern")
+            raise Invalid(_msg(msg,
+                               'regex',
+                               "does not match pattern"))
         return value
 
 def regex_sub(pat, sub):
-    if isinstance(pat, basestring):
-        pat=re.compile(pat)
     def f(value):
-        return pat.sub(value, sub)
+        return re.sub(pat, value, sub)
     return f
 
