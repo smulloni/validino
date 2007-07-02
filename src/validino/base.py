@@ -25,6 +25,7 @@ __all__=['Invalid',
          'not_equal',
          'integer',
          'not_empty',
+         'not_belongs',
          'belongs',
          'parse_date',
          'parse_datetime',
@@ -296,7 +297,7 @@ def parse_datetime(format, msg=None):
     
     def f(value):
         v=parse_time(format, msg)(value)
-        return datetime.date(*v[:6])
+        return datetime.datetime(*v[:6])
     return f                
 
 def integer(msg=None):

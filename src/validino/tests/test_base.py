@@ -121,19 +121,41 @@ def test_belongs():
     msg="rinse me a robot"
     v=V.belongs('pinko widget frog lump'.split(), msg=msg)
     assert v('pinko')=='pinko'
-
+    _assert_invalid(lambda: v('snot'), msg)
 
 def test_not_belongs():
-    pass
+    msg="belittle my humbug"
+    v=V.not_belongs(range(5), msg=msg)
+    assert v('pinko')=='pinko'
+    _assert_invalid(lambda: v(4), msg=msg)
 
 def test_parse_date():
-    pass
-
+    fmt='%m %d %Y'
+    msg='Gargantua and Pantagruel'
+    v=V.parse_datetime(fmt, msg)
+    dt=v('07 02 2007')
+    assert dt.year==2007
+    assert dt.month==7
+    assert dt.day==2
+    
 def test_parse_datetime():
-    pass
+    fmt='%m %d %Y %H:%M'
+    msg='Gargantua and Pantagruel'
+    v=V.parse_datetime(fmt, msg)
+    dt=v('07 02 2007 12:34')
+    assert dt.year==2007
+    assert dt.hour==12
+    assert dt.minute==34
+    
 
 def test_parse_time():
-    pass
+    fmt='%m %d %Y'
+    msg="potted shrimp"
+    v=V.parse_time(fmt, msg)
+    ts=v('10 03 2007')[:3]
+    assert ts==(2007, 10, 3)
+    _assert_invalid(lambda: v('tough nuggie'), msg)
+    
 
 def test_regex():
     pass
