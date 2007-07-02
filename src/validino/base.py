@@ -263,7 +263,9 @@ def not_belongs(domain, msg=None):
 
 def parse_time(format, msg=None):
     """
-    
+    attempts to parse the time according to
+    the given format, returning a timetuple,
+    or raises an Invalid exception.
     """
     def f(value):
         try:
@@ -295,6 +297,9 @@ def parse_datetime(format, msg=None):
     return f                
 
 def integer(msg=None):
+    """
+    attempts to coerce the value into an integer.
+    """
     def f(value):
         try:
             return int(value)
@@ -306,6 +311,11 @@ def integer(msg=None):
 
 
 def regex(pat, msg=None):
+    """
+    tests the value against the given regex pattern
+    and raises Invalid if it doesn't match.
+    
+    """
     def f(value):
         m=re.match(pat, value)
         if not m:
@@ -316,6 +326,9 @@ def regex(pat, msg=None):
     return f
 
 def regex_sub(pat, sub):
+    """
+    performs regex substitution on the input value.
+    """
     def f(value):
         return re.sub(pat, sub, value)
     return f
