@@ -198,7 +198,7 @@ def parse_date(format):
     
     def f(value):
         v=parse_time(format)(value)
-        return datetime.date(v[:3])
+        return datetime.date(*v[:3])
     return f
 
 def parse_datetime(format):
@@ -208,7 +208,7 @@ def parse_datetime(format):
     
     def f(value):
         v=parse_time(format)(value)
-        return datetime.date(v[:6])
+        return datetime.date(*v[:6])
     return f                
 
 def integer():
