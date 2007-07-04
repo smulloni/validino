@@ -1,7 +1,7 @@
-Error messages need to be rethought.  Rather than supporting
-internationalization internally, let the messages always be generated
-externally and passed in.  That means that validators should have a
-'msg' keyword argument.
+- "extras" -- cc card, email, etc.
+- docstrings -- add missing ones, revise existing.  doctests?
+- docstring for __init__ should be mini-howto
+- more schema tests
 
 
 

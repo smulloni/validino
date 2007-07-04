@@ -1,3 +1,4 @@
+import copy
 import datetime
 import re
 import time
@@ -6,12 +7,14 @@ __all__=['Invalid',
          'clamp',
          'clamp_length',
          'compose',
+         'confirm_type',
          'default',
          'dict_nest',
          'dict_unnest',
          'either',
          'empty',
          'equal',
+         'excursion',
          'fields_match',
          'not_equal',
          'integer',
@@ -21,10 +24,13 @@ __all__=['Invalid',
          'parse_date',
          'parse_datetime',
          'parse_time',
+         'pluralize',
          'regex',
          'regex_sub',
          'schema',
-         'strip']
+         'strip',
+         'to_unicode',
+         'translate']
 
 
 def _msg(msg, key, default):
@@ -115,6 +121,40 @@ def schema(validators, msg=None):
         return res
     return f
 
+def confirm_type(typespec, msg=None):
+    def f(value):
+        if isinstance(value, typespec):
+            return value
+        raise Invalid(_msg(msg,
+                           "confirm_type",
+                           "unexpected type"))
+    return f
+
+def translate(mapping, msg=None):
+    def f(value):
+        try:
+            return mapping[value]
+        except KeyError:
+            raise Invalid(_msg(msg,
+                               "belongs",
+                               "invalid choice"))
+    return f
+
+def to_unicode(encoding='utf8', errors='strict', msg=None):
+    def f(value):
+        if isinstance(value, unicode):
+            return value
+        else:
+            try:
+                return value.decode(encoding, errors)
+            except UnicodeError, e:
+                raise Invalid(_msg(msg,
+                                   'to_unicode',
+                                   'decoding error'),
+                              subexceptions=[e])
+    return f
+
+
 def default(defaultValue):
     """
     if the value is None, return defaultValue instead.
@@ -155,6 +195,23 @@ def compose(*validators):
             value=v(value)
         return value
     return f
+
+def excursion(*validators):
+    """
+    perform a series of validations that may break down the data
+    passed in into a form that you don't deserve to retain; if the
+    data survives validation, you carry on from the point the
+    excursion started.
+    """
+    def f(value):
+        compose(*validators)(copy.copy(value))
+        return value
+    return f
+
+def pluralize(val):
+    if not isinstance(val, (list,tuple)):
+        return [val]
+    return val
 
 def equal(val, msg=None):
     def f(value):

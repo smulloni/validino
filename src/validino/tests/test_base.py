@@ -214,3 +214,42 @@ def test_fields_match():
     assert d==v(d)
     v=V.fields_match('foo', 'poo', 'oink')
     _assert_invalid(lambda: v(d), 'oink')
+
+def test_excursion():
+    x='gadzooks@wonko.com'
+
+    v=V.excursion(lambda x: x.split('@')[0],
+                  V.belongs(['gadzooks', 'willy'],
+                            msg='pancreatic'))
+    assert x==v(x)
+    _assert_invalid(lambda: v('hieratic impulses'), 'pancreatic')
+    
+
+def test_confirm_type():
+    v=V.confirm_type((int, float), 'not a number')
+    assert v(45)==45
+    _assert_invalid(lambda: v('45'), 'not a number')
+
+
+def test_translate():
+    v=V.translate(dict(y=True, f=False),  'dong')
+    assert v('y')==True
+    _assert_invalid(lambda: v('pod'), 'dong')
+
+def test_to_unicode():
+    v=V.to_unicode(msg='cats')
+    assert v(u"brisbane")==u"brisbane"
+    u=u"\N{GREEK CAPITAL LETTER OMEGA} my gawd"
+    s=u.encode('utf-8')
+    assert v(s)==u
+
+
+def test_pluralize():
+    assert V.pluralize(3)==[3]
+    assert V.pluralize((3,))==(3,)
+
+
+def test_map():
+    data=['pig', 'frog', 'lump']
+    v=lambda value: map(V.clamp_length(max=4), value)
+    assert v(data)==data

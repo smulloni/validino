@@ -6,7 +6,7 @@ import os
 import sys
 sys.path.insert(0, 'src')
 
-version='0.0'
+version='0.1'
 description="a simple validation framework"
 long_description="""
 validino is a simple validation framework with a functional
@@ -16,7 +16,6 @@ platforms="OS Independent"
 
 keywords=["validation", "forms"]
 classifiers=filter(None, """
-
 Development Status :: 4 - Beta
 Intended Audience :: Developers
 Operating System :: OS Independent
