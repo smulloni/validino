@@ -27,5 +27,8 @@ def test_credit_card():
     assert v((cc, 'Visa'))==(cc, 'Visa')
 
 def test_url():
-    #v=V.url(
-    pass
+    v=V.url()
+    u='http://www.wnyc.org/'
+    assert v(u)==u
+    v=V.url(True)
+    assert v(u)==u

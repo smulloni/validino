@@ -108,7 +108,7 @@ def url(check_exists=False,
         default_schema='http',
         default_host='',
         msg=None):
-    if check_exists and set(schemas).difference(set('http', 'https')):
+    if check_exists and set(schemas).difference(set(('http', 'https'))):
         m="existence check not supported for schemas other than http and https"
         raise RuntimeError(m)
     def f(value):
@@ -123,9 +123,9 @@ def url(check_exists=False,
             netloc=default_host
 
 
-        url=urlparse.urlunparse(schema, netloc, path, params, query, fragment)
+        url=urlparse.urlunparse((schema, netloc, path, params, query, fragment))
         if check_exists:
-            newpath=urlparse.urlunparse('', '', path, params, query, fragment)
+            newpath=urlparse.urlunparse(('', '', path, params, query, fragment))
             if schema=='http':
                 conn=httplib.HTTPConnection
             elif schema=='https':
@@ -148,3 +148,4 @@ def url(check_exists=False,
                                    'url.not_exists',
                                    "url not OK"))
         return url
+    return f
