@@ -1,33 +1,33 @@
 import validino as V
-
-def _assert_invalid(f, msg):
-    try:
-        f()
-    except V.Invalid, e:
-        assert e.message==msg
-    else:
-        assert False, "exception should be raised"
+from util import assert_invalid 
+## def assert_invalid(f, msg):
+##     try:
+##         f()
+##     except V.Invalid, e:
+##         assert e.message==msg
+##     else:
+##         assert False, "exception should be raised"
 
     
 def test_clamp():
     msg='You are a pear'
     v=V.clamp(min=30, msg=msg)
     assert v(50)==50
-    _assert_invalid(lambda: v(20), msg)
+    assert_invalid(lambda: v(20), msg)
 
     v=V.clamp(max=100, msg=dict(min='haha', max='kong'))
     assert v(40)==40
-    _assert_invalid(lambda: v(120), 'kong')
+    assert_invalid(lambda: v(120), 'kong')
 
 
 def test_clamp_length():
     msg='You are a pear'
     v=V.clamp_length(min=3, msg=msg)
     assert v('500')=='500'
-    _assert_invalid(lambda: v('eh'), msg)
+    assert_invalid(lambda: v('eh'), msg)
     v=V.clamp_length(max=10, msg=dict(minlen='haha', maxlen='kong'))
     assert v('40')=='40'
-    _assert_invalid(lambda: v('I told you that Ronald would eat it when you were in the bathroom'), 'kong')
+    assert_invalid(lambda: v('I told you that Ronald would eat it when you were in the bathroom'), 'kong')
     
 
 def test_compose():
@@ -43,10 +43,10 @@ def test_compose():
     assert v(None)==40
     assert v('40')==40
     assert v('44  ')==44
-    _assert_invalid(lambda: v(' prick '), messages['integer'])
-    _assert_invalid(lambda: v(' 41  '), messages['belongs'])
-    _assert_invalid(lambda: v('96'), messages['max'])
-    _assert_invalid(lambda: v('8'), messages['min'])
+    assert_invalid(lambda: v(' prick '), messages['integer'])
+    assert_invalid(lambda: v(' 41  '), messages['belongs'])
+    assert_invalid(lambda: v('96'), messages['max'])
+    assert_invalid(lambda: v('8'), messages['min'])
     
 
 def test_default():
@@ -77,23 +77,23 @@ def test_either():
     v=V.either(V.empty(), V.integer(msg="please enter an integer"))
     assert v('')==''
     assert v('40')==40
-    _assert_invalid(lambda: v('bonk'), msg)
+    assert_invalid(lambda: v('bonk'), msg)
 
 
 def test_empty():
     v=V.empty(msg="scorch me")
     assert v('')==''
-    _assert_invalid(lambda: v("bob"), 'scorch me')
+    assert_invalid(lambda: v("bob"), 'scorch me')
     
 def test_equal():
     v=V.equal('egg', msg="not equal")
     assert v('egg')=='egg'
-    _assert_invalid(lambda: v('bob'), 'not equal')
+    assert_invalid(lambda: v('bob'), 'not equal')
 
 def test_not_equal():
     v=V.not_equal('egg', msg='equal')
     assert v('plop')=='plop'
-    _assert_invalid(lambda: v('egg'), 'equal')
+    assert_invalid(lambda: v('egg'), 'equal')
 
 def test_integer():
     msg="please enter an integer"
@@ -121,13 +121,13 @@ def test_belongs():
     msg="rinse me a robot"
     v=V.belongs('pinko widget frog lump'.split(), msg=msg)
     assert v('pinko')=='pinko'
-    _assert_invalid(lambda: v('snot'), msg)
+    assert_invalid(lambda: v('snot'), msg)
 
 def test_not_belongs():
     msg="belittle my humbug"
     v=V.not_belongs(range(5), msg=msg)
     assert v('pinko')=='pinko'
-    _assert_invalid(lambda: v(4), msg=msg)
+    assert_invalid(lambda: v(4), msg=msg)
 
 def test_parse_date():
     fmt='%m %d %Y'
@@ -154,13 +154,13 @@ def test_parse_time():
     v=V.parse_time(fmt, msg)
     ts=v('10 03 2007')[:3]
     assert ts==(2007, 10, 3)
-    _assert_invalid(lambda: v('tough nuggie'), msg)
+    assert_invalid(lambda: v('tough nuggie'), msg)
     
 
 def test_regex():
     v=V.regex('shrubbery\d{3}$', 'regex')
     assert v('shrubbery222')=='shrubbery222'
-    _assert_invalid(lambda: v('buy a shrubbery333, ok?'), 'regex')
+    assert_invalid(lambda: v('buy a shrubbery333, ok?'), 'regex')
 
 def test_regex_sub():
     v=V.regex_sub('shrubbery', 'potted plant')
@@ -213,7 +213,14 @@ def test_fields_match():
     v=V.fields_match('foo', 'goo')
     assert d==v(d)
     v=V.fields_match('foo', 'poo', 'oink')
-    _assert_invalid(lambda: v(d), 'oink')
+    assert_invalid(lambda: v(d), 'oink')
+
+def test_fields_equal():
+    values=("pong", "pong")
+    v=V.fields_equal('hog')
+    assert values==v(values)
+    values=('tim', 'worthy')
+    assert_invalid(lambda: v(values), 'hog')
 
 def test_excursion():
     x='gadzooks@wonko.com'
@@ -222,19 +229,19 @@ def test_excursion():
                   V.belongs(['gadzooks', 'willy'],
                             msg='pancreatic'))
     assert x==v(x)
-    _assert_invalid(lambda: v('hieratic impulses'), 'pancreatic')
+    assert_invalid(lambda: v('hieratic impulses'), 'pancreatic')
     
 
 def test_confirm_type():
     v=V.confirm_type((int, float), 'not a number')
     assert v(45)==45
-    _assert_invalid(lambda: v('45'), 'not a number')
+    assert_invalid(lambda: v('45'), 'not a number')
 
 
 def test_translate():
     v=V.translate(dict(y=True, f=False),  'dong')
     assert v('y')==True
-    _assert_invalid(lambda: v('pod'), 'dong')
+    assert_invalid(lambda: v('pod'), 'dong')
 
 def test_to_unicode():
     v=V.to_unicode(msg='cats')

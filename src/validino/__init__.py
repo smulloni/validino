@@ -26,3 +26,4 @@
 """
 
 from validino.base import *
+from validino.extra import *

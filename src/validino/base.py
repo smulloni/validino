@@ -1,4 +1,3 @@
-import copy
 import datetime
 import re
 import time
@@ -15,6 +14,7 @@ __all__=['Invalid',
          'empty',
          'equal',
          'excursion',
+         'fields_equal',
          'fields_match',
          'not_equal',
          'integer',
@@ -99,20 +99,52 @@ class Invalid(ValueError):
 
 def schema(validators, msg=None):
     """
-    validate a dictionary of data according
-    to a dictionary of validators that match according
-    to key.
+    creates a validator from a dictionary of subvalidators that will
+    be used to validate a dictionary of data, returning a new
+    dictionary that contains the converted values.
+
+    The keys in the validator dictionary may be either singular -- atoms
+    (presumably strings) that match keys in the data dictionary, or
+    plural -- lists/tuples of such atoms.
+
+    The values associated with those keys should be subvalidator
+    functions (or lists/tuples of functions that will be composed
+    automatically) that are passed a value or values taken from the
+    data dictionary according to the corresponding key in the data
+    dictionary.  If the key is singular, the subvalidator will be
+    passed the data dictionary's value for the key (or None); if
+    plural, it will be passed a tuple of the data dictionary's values
+    for all the items in the plural key (e.g., tuple(data[x] for x in
+    key)).  In either case, the return value of the subvalidator
+    should match the structure of the input.
+
+    The subvalidators are sorted by key before being executed.  Therefore,
+    subvalidators with plural keys will always be executed after those
+    with singular keys.
+
     """
     def f(data):
         res={}
         exceptions={}
-        for k, vfunc in validators.iteritems():
+        for k in sorted(validators):
+            vfunc=validators[k]
             if isinstance(vfunc, (list, tuple)):
                 vfunc=compose(*vfunc)
+            have_plural=isinstance(k, (list,tuple))
+            if have_plural:
+                vdata=tuple(data.get(x) for x in k)
+            else:
+                vdata=data.get(k)
             try:
-                res[k]=vfunc(data.get(k))
+                tmp=vfunc(vdata)
             except Exception, e:
                 exceptions[k]=e
+            else:
+                if have_plural:
+                    res.update(dict(zip(k, tmp)))
+                else:
+                    res[k]=tmp
+
         if exceptions:
             raise Invalid(_msg(msg,
                                "schema_error",
@@ -204,7 +236,7 @@ def excursion(*validators):
     excursion started.
     """
     def f(value):
-        compose(*validators)(copy.copy(value))
+        compose(*validators)(value)
         return value
     return f
 
@@ -389,6 +421,19 @@ def regex_sub(pat, sub):
     """
     def f(value):
         return re.sub(pat, sub, value)
+    return f
+
+def fields_equal(msg=None):
+    """
+    when passed a collection of values,
+    verifies that they are all equal.
+    """
+    def f(values):
+        if len(set(values))!=1:
+            raise Invalid(_msg(msg,
+                               'fields_equal',
+                               "fields not equal"))
+        return values
     return f
 
 def fields_match(name1, name2, msg=None):
