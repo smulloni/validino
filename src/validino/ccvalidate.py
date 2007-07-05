@@ -3,6 +3,8 @@ contains a function for validating credit card numbers.
 Supported card types are MasterCard, Visa, Amex, Diners Club,
 Carte Blanche, Discover, En Route, and JCB.
 
+(This came originally from SkunkWeb.)
+
 """
 
 import re
