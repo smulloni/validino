@@ -172,7 +172,7 @@ def test_regex_sub():
 
 
 def test_schema_1():
-    s=V.schema(
+    s=V.Schema(
         dict(username=(V.strip,
                        V.regex('[a-z][a-z0-9]+',
                                'invalid username'),
@@ -200,7 +200,7 @@ def test_schema_1():
     assert data['department']==newdata['department']
     
 def test_schema_2():
-    s=V.schema(
+    s=V.Schema(
         dict(x=(V.integer('intx'), V.clamp(min=5, max=100, msg='clampx')),
              y=(V.integer('inty'), V.clamp(min=5, max=100, msg='clampy')),
              text=V.strip),
@@ -224,7 +224,27 @@ def test_schema_2():
     assert_invalid(lambda: v(d4), 'extra data')
 
              
-        
+def test_schema_3():
+    v=V.Schema(
+        dict(x=(V.integer('intx'), V.clamp(min=5, max=100, msg='clampx')),
+             y=(V.integer('inty'), V.clamp(min=5, max=100, msg='clampy')),
+             text=V.strip),
+        {'schema.error' : 'schema',
+         'schema.extra' : 'extra',
+         'schema.missing' : 'missing'},
+        False,
+        False
+        )
+
+    d1=dict(x=40, y=20, text='hi there')
+    assert v(d1)==d1
+    d2=dict(x=1, y=20, text='hi there')
+    assert_invalid(lambda: v(d2), 'schema')
+    d3=dict(x=10, y=10)
+    assert_invalid(lambda: v(d3), 'missing')
+    d4=dict(x=10, y=10, text='ho', pingpong='lather')
+    assert_invalid(lambda: v(d4), 'extra')
+    
 
 def test_strip():
     assert V.strip('   foo   ')=='foo'

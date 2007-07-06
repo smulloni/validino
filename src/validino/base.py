@@ -28,7 +28,7 @@ __all__=['Invalid',
          'pluralize',
          'regex',
          'regex_sub',
-         'schema',
+         'Schema',
          'strip',
          'to_unicode',
          'translate']
@@ -100,7 +100,8 @@ class Invalid(ValueError):
                     result[name].append(exc)
         return result
 
-def schema(validators, msg=None):
+
+class Schema(object):
     """
     creates a validator from a dictionary of subvalidators that will
     be used to validate a dictionary of data, returning a new
@@ -125,12 +126,51 @@ def schema(validators, msg=None):
     subvalidators with plural keys will always be executed after those
     with singular keys.
 
-    """
-    def f(data):
+    If allow_missing is False, then any missing keys in the input will
+    give rise to an error.  Similarly, if allow_extra is False, any
+    extra keys will result in an error.
+
+    """    
+    def __init__(self,
+                 subvalidators,
+                 msg=None,
+                 allow_missing=True,
+                 allow_extra=True):
+        self.subvalidators=subvalidators
+        self.msg=msg
+        self.allow_missing=allow_missing
+        self.allow_extra=allow_extra
+
+    def keys(self):
+        schemakeys=set()
+        for x in self.subvalidators:
+            if isinstance(x, (list, tuple)):
+                for x1 in x:
+                    schemakeys.add(x1)
+            else:
+                schemakeys.add(x)
+        return schemakeys
+
+
+    def __call__(self, data):
         res={}
         exceptions={}
-        for k in sorted(validators):
-            vfunc=validators[k]
+        if not (self.allow_extra and self.allow_missing):
+            inputkeys=set(data.keys())
+            schemakeys=self.keys()
+            if not self.allow_extra:
+                if inputkeys.difference(schemakeys):
+                    raise Invalid(_msg(self.msg,
+                                       'schema.extra',
+                                       'extra keys in input'))
+            if not self.allow_missing:
+                if schemakeys.difference(inputkeys):
+                    raise Invalid(_msg(self.msg,
+                                       'schema.missing',
+                                       'missing keys in input'))
+                
+        for k in sorted(self.subvalidators):
+            vfunc=self.subvalidators[k]
             if isinstance(vfunc, (list, tuple)):
                 vfunc=compose(*vfunc)
             have_plural=isinstance(k, (list,tuple))
@@ -153,13 +193,12 @@ def schema(validators, msg=None):
                     res[k]=tmp
 
         if exceptions:
-            raise Invalid(_msg(msg,
-                               "schema_error",
+            raise Invalid(_msg(self.msg,
+                               "schema.error",
                                "Problems were found in the submitted data."),
                           exceptions)
-        return res
-    return f
-
+        return res        
+            
 
 def confirm_type(typespec, msg=None):
     def f(value):

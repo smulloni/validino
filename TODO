@@ -12,4 +12,21 @@
 
 
 
+In the context of a schema, when I raise a validation exception, I
+want to say about what in the schema it is pertinent to.  In the case
+of a subvalidator that acts on a single value, that isn't a problem;
+the schema knows what the key is, usually.  But if the validator being
+invoked operates on multiple keys, one may desire to say to the user
+that a particular key is bad (because it disagrees with another),
+rather than saying "these two (or more) keys are in disagreement" --
+or disassociate the error from any particular field in the schema.
 
+Adding a "field" attribute to Invalid will help in writing custom
+validators.  And it may also help in validators we supply of this
+type.
+
+Validators that operate on whole schemas don't want to have to return
+the modified schema; they want to change the schema in place.  So a
+function similar to excursion, which returns the data passed in to it,
+but rather than composing the subfunctions, passes them each the
+original data, would be useful.
