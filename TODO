@@ -1,32 +1,6 @@
 - docstrings -- add missing ones, revise existing.  doctests?
 - docstring for __init__ should be mini-howto
-- more schema tests
-- better way of constructing adding validators that act on multiple
-  keys in a schema; in particular, an ability to add an error associated
-  with a different key would be desirable (so, in validator that is given
-  both state and country, associate the error with state, rather than with 
-  both).  Adding a "key" to the Invalid exception and paying attention to this
-  is unpack_errors() might be enough. 
-- more room for validators that act at the dictionary level.  Using a class for this, rather than adding things purely functionally, might be helpful.
-- unpack_errors() is broken anyway.  Refactor and write tests.
 
 
 
-In the context of a schema, when I raise a validation exception, I
-want to say about what in the schema it is pertinent to.  In the case
-of a subvalidator that acts on a single value, that isn't a problem;
-the schema knows what the key is, usually.  But if the validator being
-invoked operates on multiple keys, one may desire to say to the user
-that a particular key is bad (because it disagrees with another),
-rather than saying "these two (or more) keys are in disagreement" --
-or disassociate the error from any particular field in the schema.
 
-Adding a "field" attribute to Invalid will help in writing custom
-validators.  And it may also help in validators we supply of this
-type.
-
-Validators that operate on whole schemas don't want to have to return
-the modified schema; they want to change the schema in place.  So a
-function similar to excursion, which returns the data passed in to it,
-but rather than composing the subfunctions, passes them each the
-original data, would be useful.

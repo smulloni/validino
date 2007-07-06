@@ -17,7 +17,7 @@ def test_ip():
     assert_invalid(lambda: v("this is not an ip"), 'donkey')
 
 
-def test_credit_card():
+def test_credit_card_1():
     cc='4000000000998'
     v=V.credit_card(msg="aha")
     assert v(cc)==cc
@@ -25,6 +25,43 @@ def test_credit_card():
     assert_invalid(lambda: v(str(int(cc)-1)), 'aha')
     v=V.credit_card(require_type=True,  msg='aha')
     assert v((cc, 'Visa'))==(cc, 'Visa')
+
+
+def test_credit_card_2():    
+    cc='4000000000998'
+    invalid_cc=str(int(cc)-1)
+    s=V.Schema(dict(cc_card=(V.strip, V.not_empty("Please enter a credit card number")),
+                    cc_type=V.belongs(('Visa', 'Discover'), msg="belongs")))
+    v=V.credit_card(require_type=True,
+                    cc_field='cc_card',
+                    cc_type_field='cc_type')
+    s.subvalidators[('cc_card', 'cc_type')]=v                
+                                                         
+    data=dict(cc_card=cc,
+              cc_type='Visa')
+    assert s(data)==data
+
+    data['cc_card']=invalid_cc
+    try:
+        s(data)
+    except V.Invalid, e:
+        errors=e.unpack_errors()
+        assert set(errors.keys())==set((None, 'cc_card'))
+    else:
+        assert False, "there should be an error"
+    data=dict(cc_card=cc,
+              cc_type="Frog")
+    try:
+        s(data)
+    except V.Invalid, e:
+        errors=e.unpack_errors()
+        print errors
+        assert set(errors.keys())==set((None, 'cc_type'))
+    else:
+        assert False, "there should be an error"
+    
+
+    
 
 def test_url():
     v=V.url()

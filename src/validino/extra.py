@@ -83,7 +83,7 @@ def credit_card(types=None, require_type=False, msg=None, cc_field=None, cc_type
             raise Invalid(_msg(msg,
                                "credit_card.type_check",
                                "unrecognized credit card type"),
-                          field=cc_field)
+                          field=cc_type_field)
         try:
             _cc.check_credit_card(cardnumber, cc_type)
         except _cc.CreditCardValidationException, e:

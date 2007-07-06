@@ -89,15 +89,22 @@ class Invalid(ValueError):
         self.message=message
         self.field=field
 
-    def unpack_errors(self):
-        result={None: [self]}
+    def unpack_errors(self, force_dict=True):
+        if self.subexceptions or force_dict:
+            result={None: [self.message]}
+        else:
+            result=self.message
         if self.subexceptions:
-            for name, exc in self.subexceptions.iteritems():
+
+            for name, excs in self.subexceptions.iteritems():
                 result.setdefault(name, [])
-                try:
-                    result[name].append(exc.unpack_errors())
-                except AttributeError:
-                    result[name].append(exc)
+                for exc in excs:
+                    try:
+                        result[name].append(exc.unpack_errors(force_dict=False))
+                    except AttributeError:
+                        result[name].append(exc.args[0])
+
+
         return result
 
 
@@ -184,8 +191,9 @@ class Schema(object):
                 # if the exception specifies a field name,
                 # let that override the key in the validator
                 # dictionary
-                name=getattr(e, 'field', k)
-                exceptions[name]=e
+                name=getattr(e, 'field', k) or k
+                exceptions.setdefault(name, [])
+                exceptions[name].append(e)
             else:
                 if have_plural:
                     res.update(dict(zip(k, tmp)))
@@ -196,7 +204,7 @@ class Schema(object):
             raise Invalid(_msg(self.msg,
                                "schema.error",
                                "Problems were found in the submitted data."),
-                          exceptions)
+                          subexceptions=exceptions)
         return res        
             
 
