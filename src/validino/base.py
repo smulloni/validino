@@ -3,6 +3,7 @@ import re
 import time
 
 __all__=['Invalid',
+         'check',
          'clamp',
          'clamp_length',
          'compose',
@@ -82,19 +83,21 @@ class Invalid(ValueError):
     # this should support nested exceptions and
     # extracting messages from some context
 
-    def __init__(self, message, subexceptions=None):
+    def __init__(self, message, field=None, subexceptions=None):
         ValueError.__init__(self, message)
         self.subexceptions=subexceptions
         self.message=message
+        self.field=field
 
     def unpack_errors(self):
-        result={}
+        result={None: [self]}
         if self.subexceptions:
-            for name, exc in self.subexceptions:
+            for name, exc in self.subexceptions.iteritems():
+                result.setdefault(name, [])
                 try:
-                    result[name]=exc.unpack_errors()
+                    result[name].append(exc.unpack_errors())
                 except AttributeError:
-                    result[name]=exc
+                    result[name].append(exc)
         return result
 
 def schema(validators, msg=None):
@@ -138,7 +141,11 @@ def schema(validators, msg=None):
             try:
                 tmp=vfunc(vdata)
             except Exception, e:
-                exceptions[k]=e
+                # if the exception specifies a field name,
+                # let that override the key in the validator
+                # dictionary
+                name=getattr(e, 'field', k)
+                exceptions[name]=e
             else:
                 if have_plural:
                     res.update(dict(zip(k, tmp)))
@@ -152,6 +159,7 @@ def schema(validators, msg=None):
                           exceptions)
         return res
     return f
+
 
 def confirm_type(typespec, msg=None):
     def f(value):
@@ -182,8 +190,8 @@ def to_unicode(encoding='utf8', errors='strict', msg=None):
             except UnicodeError, e:
                 raise Invalid(_msg(msg,
                                    'to_unicode',
-                                   'decoding error'),
-                              subexceptions=[e])
+                                   'decoding error'))
+
     return f
 
 
@@ -225,6 +233,20 @@ def compose(*validators):
     def f(value):
         for v in validators:
             value=v(value)
+        return value
+    return f
+
+def check(*validators):
+    """
+    Returns a function that runs each of a series of validators
+    against input data, which is passed to each validator in turn,
+    ignoring the validators return value.  The function returns the
+    original input data (which, if it mutable, may have been changed).
+    
+    """
+    def f(value):
+        for v in validators:
+            v(value)
         return value
     return f
 

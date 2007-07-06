@@ -1,13 +1,6 @@
 import validino as V
+from validino.util import partial
 from util import assert_invalid 
-## def assert_invalid(f, msg):
-##     try:
-##         f()
-##     except V.Invalid, e:
-##         assert e.message==msg
-##     else:
-##         assert False, "exception should be raised"
-
     
 def test_clamp():
     msg='You are a pear'
@@ -47,8 +40,18 @@ def test_compose():
     assert_invalid(lambda: v(' 41  '), messages['belongs'])
     assert_invalid(lambda: v('96'), messages['max'])
     assert_invalid(lambda: v('8'), messages['min'])
-    
 
+def test_check():
+    d=dict(x=5, y=100)
+    def add_z(val):
+        val['z']=300
+    def len_d(v2, size):
+        if len(v2)!=size:
+            raise V.Invalid("wrong size")
+    d2=V.check(add_z, partial(len_d, size=3))(d)
+    assert d2 is d
+    assert d['z']==300
+    
 def test_default():
     v=V.default("pong")
     assert v(None)=='pong'
@@ -184,7 +187,7 @@ def test_schema_1():
              department=(V.strip,
                          V.belongs(['interactive', 'programming'],
                                    'department not recognized')
-                         )
+                         ),
              ),
         "there were errors with your submission"
         )
@@ -196,7 +199,31 @@ def test_schema_1():
     assert int(data['user_id'])==newdata['user_id']
     assert data['department']==newdata['department']
     
-    
+def test_schema_2():
+    s=V.schema(
+        dict(x=(V.integer('intx'), V.clamp(min=5, max=100, msg='clampx')),
+             y=(V.integer('inty'), V.clamp(min=5, max=100, msg='clampy')),
+             text=V.strip),
+        "schema"
+        )
+    def check_keys(data):
+        allkeys=set(('x', 'y', 'text'))
+        found=set(data.keys())
+        if allkeys.difference(found):
+            raise V.Invalid("incomplete data")
+        if found.difference(allkeys):
+            raise V.Invalid("extra data")
+    v=V.compose(V.check(check_keys), s)
+    d1=dict(x=40, y=20, text='hi there')
+    assert v(d1)==d1
+    d2=dict(x=1, y=20, text='hi there')
+    assert_invalid(lambda: v(d2), 'schema')
+    d3=dict(x=10, y=10)
+    assert_invalid(lambda: v(d3), 'incomplete data')
+    d4=dict(x=10, y=10, text='ho', pingpong='lather')
+    assert_invalid(lambda: v(d4), 'extra data')
+
+             
         
 
 def test_strip():
