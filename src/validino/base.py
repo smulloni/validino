@@ -484,7 +484,7 @@ def regex_sub(pat, sub):
         return re.sub(pat, sub, value)
     return f
 
-def fields_equal(msg=None):
+def fields_equal(msg=None, field=None):
     """
     when passed a collection of values,
     verifies that they are all equal.
@@ -493,11 +493,12 @@ def fields_equal(msg=None):
         if len(set(values))!=1:
             raise Invalid(_msg(msg,
                                'fields_equal',
-                               "fields not equal"))
+                               "fields not equal"),
+                          field=field)
         return values
     return f
 
-def fields_match(name1, name2, msg=None):
+def fields_match(name1, name2, msg=None, field=None):
     """
     verifies that the values associated with the keys 'name1' and
     'name2' in value (which must be a dict) are identical.
@@ -506,6 +507,7 @@ def fields_match(name1, name2, msg=None):
         if value[name1]!=value[name2]:
             raise Invalid(_msg(msg,
                                'fields_match',
-                               'fields do not match'))
+                               'fields do not match'),
+                          field=field)
         return value
     return f

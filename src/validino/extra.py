@@ -66,7 +66,7 @@ def email(check_dns=False, msg=None):
     return f
 
 
-def credit_card(types=None, require_type=False, msg=None):
+def credit_card(types=None, require_type=False, msg=None, cc_field=None, cc_type_field=None):
     if types is None:
         types=_cc.cards
     def f(values):
@@ -77,18 +77,21 @@ def credit_card(types=None, require_type=False, msg=None):
         if require_type and cc_type is None:
             raise Invalid(_msg(msg,
                                "credit_card.require_type",
-                               "no credit card type specified"))
+                               "no credit card type specified"),
+                          field=cc_type_field)
         if not (cc_type is None) and cc_type not in types:
             raise Invalid(_msg(msg,
                                "credit_card.type_check",
-                               "unrecognized credit card type"))
+                               "unrecognized credit card type"),
+                          field=cc_field)
         try:
             _cc.check_credit_card(cardnumber, cc_type)
         except _cc.CreditCardValidationException, e:
             raise Invalid(_msg(msg,
                                "credit_card.invalid",
                                "invalid credit card number"),
-                          subexceptions=[e])
+                          subexceptions=[e],
+                          field=cc_field)
         else:
             return values
         
