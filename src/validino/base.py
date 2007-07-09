@@ -91,7 +91,11 @@ class Invalid(ValueError):
 
     def unpack_errors(self, force_dict=True):
         if self.subexceptions or force_dict:
-            result={None: [self.message]}
+            if self.message:
+                # drop the top level message if it is empty
+                result={None: [self.message]}
+            else:
+                result={}
         else:
             result=self.message
         if self.subexceptions:

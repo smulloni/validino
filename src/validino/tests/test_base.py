@@ -299,3 +299,13 @@ def test_map():
     data=['pig', 'frog', 'lump']
     v=lambda value: map(V.clamp_length(max=4), value)
     assert v(data)==data
+
+def test_unpack_1():
+    
+    e=V.Invalid('', subexceptions={'ding' : [V.Invalid('pod')],
+                                   'dong' : [V.Invalid('piddle')]})
+    res=e.unpack_errors()
+    assert res=={'ding' : ['pod'], 'dong' : ['piddle']}
+    e2=V.Invalid('', subexceptions={'' : [e]})
+    res2=e.unpack_errors()
+    assert res==res2

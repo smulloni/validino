@@ -55,7 +55,6 @@ def test_credit_card_2():
         s(data)
     except V.Invalid, e:
         errors=e.unpack_errors()
-        print errors
         assert set(errors.keys())==set((None, 'cc_type'))
     else:
         assert False, "there should be an error"
