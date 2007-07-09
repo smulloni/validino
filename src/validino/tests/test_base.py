@@ -305,7 +305,25 @@ def test_unpack_1():
     e=V.Invalid('', subexceptions={'ding' : [V.Invalid('pod')],
                                    'dong' : [V.Invalid('piddle')]})
     res=e.unpack_errors()
+    print res
     assert res=={'ding' : ['pod'], 'dong' : ['piddle']}
     e2=V.Invalid('', subexceptions={'' : [e]})
     res2=e.unpack_errors()
+    print res2
     assert res==res2
+
+
+def test_unpack_2():
+    e=V.Invalid('', subexceptions={'ding' : [V.Invalid('pod')],
+                                   'dong' : [V.Invalid('piddle')]})    
+    
+    e2=V.Invalid('', subexceptions={'' : [e]})
+    e3=V.Invalid('', subexceptions={'' : [e2]})
+    r1=e.unpack_errors()
+    print
+    print r1
+    r2=e2.unpack_errors()
+    print r2
+    r3=e3.unpack_errors()
+    print r3
+    assert r1==r3

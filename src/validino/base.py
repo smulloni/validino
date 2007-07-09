@@ -101,11 +101,18 @@ class Invalid(ValueError):
         if self.subexceptions:
 
             for name, excs in self.subexceptions.iteritems():
-                result.setdefault(name, [])
+
                 for exc in excs:
                     try:
-                        result[name].append(exc.unpack_errors(force_dict=False))
+                        subd=exc.unpack_errors(force_dict=False)
+                        if isinstance(subd, dict):
+                            result.update(subd)
+                        elif subd:
+                            result.setdefault(name, [])
+                            result[name].append(subd)
+                        #result[name].append(exc.unpack_errors(force_dict=False))
                     except AttributeError:
+                        result.setdefault(name, [])
                         result[name].append(exc.args[0])
 
 
