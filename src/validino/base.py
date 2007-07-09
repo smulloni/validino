@@ -339,7 +339,7 @@ def empty(msg=None):
 
 def not_empty(msg=None):
     def f(value):
-        if value!='':
+        if value!='' and value != None:
             return value
         raise Invalid(_msg(msg,
                            'notempty',
@@ -407,7 +407,7 @@ def belongs(domain, msg=None):
 
 def not_belongs(domain, msg=None):
     """
-    ensures that the value belongs to the domain
+    ensures that the value does not belong to the domain
     specified.
     """
     def f(value):

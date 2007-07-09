@@ -86,6 +86,7 @@ def test_either():
 def test_empty():
     v=V.empty(msg="scorch me")
     assert v('')==''
+    assert v(None)==None
     assert_invalid(lambda: v("bob"), 'scorch me')
     
 def test_equal():
@@ -102,23 +103,14 @@ def test_integer():
     msg="please enter an integer"
     v=V.integer(msg=msg)
     assert v('40')==40
-    try:
-        v('whack him until he screams')
-    except V.Invalid, e:
-        assert e.message==msg
-    else:
-        assert False, "expected an exception to be raised"
+    assert_invalid(lambda: v('whack him until he screams'), msg)
 
 def test_not_empty():
     msg="hammer my xylophone"
     v=V.not_empty(msg=msg)
     assert v("frog")=='frog'
-    try:
-        v('')
-    except V.Invalid, e:
-        assert e.message==msg
-    else:
-        assert False, "expected an exception to be raised"
+    assert_invalid(lambda: v(''), msg)
+    assert_invalid(lambda: v(None), msg)
 
 def test_belongs():
     msg="rinse me a robot"
