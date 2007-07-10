@@ -90,7 +90,7 @@ def credit_card(types=None, require_type=False, msg=None, cc_field=None, cc_type
             raise Invalid(_msg(msg,
                                "credit_card.invalid",
                                "invalid credit card number"),
-                          subexceptions={cc_field : [e]},
+                          #subexceptions={cc_field : [e]},
                           field=cc_field)
         else:
             return values
