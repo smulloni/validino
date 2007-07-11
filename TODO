@@ -2,5 +2,31 @@
 - docstring for __init__ should be mini-howto
 
 
+Issues --
+
+The Invalid exception isn't something I like very much.  Subexceptions
+are a bit of a hack.  What you really want is the error dictionary.
+Exceptions are a control mechanism; the errors a validation library
+produces aren't really *exceptional*.
+
+Whatever the code makes it look like, really validation produces two
+different kinds of results: converted data, and errors.  Normally
+either one or the other, but not necessarily.  The exception pattern
+is fine for this, except that raising more than one error is difficult
+-- you need to explicitly deal with this case in validation code,
+which invites errors.  The pattern of returning errors is also OK,
+except that then you have to return a 2-tuple, and in most cases one
+will be empty, which is suggestive of boilerplate.  Another pattern
+would be to pass in an object that collects the errors (it could be
+self) -- a state variable; you directly populate the error dictionary
+of the state variable, and can even manipulate it (remove or rewrite
+errors).  
+
+Almost all the time, you'll want to be using a Schema object that
+validates a whole bunch of data (a dict).  
+
+
+
+
 
 

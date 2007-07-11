@@ -83,21 +83,51 @@ class Invalid(ValueError):
     # this should support nested exceptions and
     # extracting messages from some context
 
-    def __init__(self, message, field=None, subexceptions=None):
+    def __init__(self,
+                 message=None,
+                 field=None,
+                 errors=None,
+                 subexceptions=None):
         ValueError.__init__(self, message)
-        self.subexceptions=subexceptions
+        self.errors=self._normalize_dict(errors)
+        self.subexceptions=self._normalize_dict(subexceptions)
         self.message=message
         self.field=field
 
+
+    @staticmethod
+    def _join_dicts(res, d):
+        for k in d:
+            res.setdefault(k, [])
+            res[k].extend(d[k])
+
+
+    @staticmethod
+    def _normalize_dict(d):
+        res={}
+        if d:
+            for k, v in d.iteritems():
+                if not isinstance(v, (list,tuple)):
+                    res[k]=[v]
+                else:
+                    res[k]=v
+        return res
+
     def unpack_errors(self, force_dict=True):
-        if self.subexceptions or force_dict:
+        if self.errors or self.subexceptions or force_dict:
             if self.message:
                 # drop the top level message if it is empty
                 result={None: [self.message]}
             else:
                 result={}
         else:
-            result=self.message
+            return self.message
+        
+        if self.errors:
+            for name, msglist in self.errors.iteritems():
+                result.setdefault(name, [])
+                result[name].extend(msglist)
+                
         if self.subexceptions:
 
             for name, excs in self.subexceptions.iteritems():
@@ -105,12 +135,12 @@ class Invalid(ValueError):
                 for exc in excs:
                     try:
                         subd=exc.unpack_errors(force_dict=False)
+
                         if isinstance(subd, dict):
-                            result.update(subd)
+                            self._join_dicts(result, subd)
                         elif subd:
                             result.setdefault(name, [])
                             result[name].append(subd)
-                        #result[name].append(exc.unpack_errors(force_dict=False))
                     except AttributeError:
                         result.setdefault(name, [])
                         result[name].append(exc.args[0])

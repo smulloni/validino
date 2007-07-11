@@ -327,3 +327,32 @@ def test_unpack_2():
     r3=e3.unpack_errors()
     print r3
     assert r1==r3
+
+def test_unpack_3():
+    errors=dict(frog="My peachy frog hurts",
+                dog="My dog has warts up and down his spine",
+                insect="I would characterize this insect as flawed")
+    e=V.Invalid(errors=errors)
+
+    u=e.unpack_errors()
+    assert set(u)==set(('frog', 'dog', 'insect'))
+    for v in u.itervalues():
+        assert isinstance(v, list)
+        assert len(v)==1
+
+    e2=V.Invalid(errors=dict(frog='squished'))
+    u2=e2.unpack_errors()
+    assert u2==dict(frog=['squished'])
+
+    e3=V.Invalid(errors=errors,
+                 subexceptions={'' : [e2]})
+    u3=e3.unpack_errors()
+    assert set(u3)==set(('frog', 'dog', 'insect'))
+    for k, v in u3.iteritems():
+        assert isinstance(v, list)
+        if k=='frog':
+            assert len(v)==2
+        else:
+            assert len(v)==1
+                
+                            
