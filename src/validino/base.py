@@ -267,9 +267,9 @@ class Schema(object):
                 vfunc=compose(*vfunc)
             have_plural=isinstance(k, (list,tuple))
             if have_plural:
-                vdata=tuple(data.get(x) for x in k)
+                vdata=tuple(res.get(x, data.get(x)) for x in k)
             else:
-                vdata=data.get(k)
+                vdata=res.get(k, data.get(k))
             try:
                 tmp=vfunc(vdata)
             except Exception, e:
