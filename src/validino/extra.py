@@ -75,23 +75,33 @@ def credit_card(types=None, require_type=False, msg=None, cc_field=None, cc_type
         else:
             cardnumber, cc_type=values, None
         if require_type and cc_type is None:
-            raise Invalid(_msg(msg,
-                               "credit_card.require_type",
-                               "no credit card type specified"),
-                          field=cc_type_field)
+            m=_msg(msg,
+                   "credit_card.require_type",
+                   "no credit card type specified")
+            if cc_type_field is None:
+                raise Invalid(m)
+            else:
+                raise Invalid({cc_type_field: m})
+
         if not (cc_type is None) and cc_type not in types:
-            raise Invalid(_msg(msg,
-                               "credit_card.type_check",
-                               "unrecognized credit card type"),
-                          field=cc_type_field)
+            m=_msg(msg,
+                   "credit_card.type_check",
+                   "unrecognized credit card type")
+            if cc_type_field is None:
+                raise Invalid(m)
+            else:
+                raise Invalid({cc_type_field: m})
+
         try:
             _cc.check_credit_card(cardnumber, cc_type)
         except _cc.CreditCardValidationException, e:
-            raise Invalid(_msg(msg,
-                               "credit_card.invalid",
-                               "invalid credit card number"),
-                          #subexceptions={cc_field : [e]},
-                          field=cc_field)
+            m=_msg(msg,
+                   "credit_card.invalid",
+                   "invalid credit card number")
+            if cc_field is None:
+                raise Invalid(m)
+            else:
+                raise Invalid({cc_field: m})
         else:
             return values
         

@@ -77,7 +77,7 @@ def test_dict_nest():
 
 def test_either():
     msg="please enter an integer"
-    v=V.either(V.empty(), V.integer(msg="please enter an integer"))
+    v=V.either(V.empty(), V.integer(msg=msg))
     assert v('')==''
     assert v('40')==40
     assert_invalid(lambda: v('bonk'), msg)
@@ -302,23 +302,23 @@ def test_map():
 
 def test_unpack_1():
     
-    e=V.Invalid('', subexceptions={'ding' : [V.Invalid('pod')],
-                                   'dong' : [V.Invalid('piddle')]})
+    e=V.Invalid({'ding' : [V.Invalid('pod')],
+                 'dong' : [V.Invalid('piddle')]})
     res=e.unpack_errors()
     print res
     assert res=={'ding' : ['pod'], 'dong' : ['piddle']}
-    e2=V.Invalid('', subexceptions={'' : [e]})
+    e2=V.Invalid({'' : [e]})
     res2=e.unpack_errors()
     print res2
     assert res==res2
 
 
 def test_unpack_2():
-    e=V.Invalid('', subexceptions={'ding' : [V.Invalid('pod')],
-                                   'dong' : [V.Invalid('piddle')]})    
+    e=V.Invalid({'ding' : [V.Invalid('pod')],
+                 'dong' : [V.Invalid('piddle')]})    
     
-    e2=V.Invalid('', subexceptions={'' : [e]})
-    e3=V.Invalid('', subexceptions={'' : [e2]})
+    e2=V.Invalid({'' : [e]})
+    e3=V.Invalid({'' : [e2]})
     r1=e.unpack_errors()
     print
     print r1
@@ -332,20 +332,21 @@ def test_unpack_3():
     errors=dict(frog="My peachy frog hurts",
                 dog="My dog has warts up and down his spine",
                 insect="I would characterize this insect as flawed")
-    e=V.Invalid(errors=errors)
+    e=V.Invalid(**errors)
 
     u=e.unpack_errors()
+    print u
     assert set(u)==set(('frog', 'dog', 'insect'))
     for v in u.itervalues():
         assert isinstance(v, list)
         assert len(v)==1
 
-    e2=V.Invalid(errors=dict(frog='squished'))
+    e2=V.Invalid(frog='squished')
     u2=e2.unpack_errors()
     assert u2==dict(frog=['squished'])
 
-    e3=V.Invalid(errors=errors,
-                 subexceptions={'' : [e2]})
+    e3=V.Invalid(errors,
+                 {'' : [e2]})
     u3=e3.unpack_errors()
     assert set(u3)==set(('frog', 'dog', 'insect'))
     for k, v in u3.iteritems():

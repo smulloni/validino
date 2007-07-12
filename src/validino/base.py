@@ -79,27 +79,49 @@ def dict_unnest(data, separator='.'):
             res[k]=v
     return res
         
-class Invalid(ValueError):
+class Invalid(Exception):
     # this should support nested exceptions and
     # extracting messages from some context
 
     def __init__(self,
-                 message=None,
-                 field=None,
-                 errors=None,
-                 subexceptions=None):
-        ValueError.__init__(self, message)
-        self.errors=self._normalize_dict(errors)
-        self.subexceptions=self._normalize_dict(subexceptions)
-        self.message=message
-        self.field=field
+                 *args,
+                 **kw):
+#                 message=None,
+#                 field=None,
+#                 errors=None,
+#                 subexceptions=None):
+
+        d={}
+        p=[]
+        for a in args:
+            if isinstance(a, dict):
+                self._join_dicts(d, a)
+            else:
+                p.append(a)
+        d.update(self._normalize_dict(kw))
+        Exception.__init__(self, p)
+        self.errors=d
+        if p:
+            self.message=p[0]
+        else:
+            self.message=None
+
+        
+##         #ValueError.__init__(self, message)
+##         self.errors=self._normalize_dict(errors)
+##         self.subexceptions=self._normalize_dict(subexceptions)
+##         self.message=message
+##         self.field=field
 
 
     @staticmethod
     def _join_dicts(res, d):
-        for k in d:
+        for k, v in d.iteritems():
             res.setdefault(k, [])
-            res[k].extend(d[k])
+            if not isinstance(v, (list,tuple)):
+                res[k].append(v)
+            else:
+                res[k].extend(v)
 
 
     @staticmethod
@@ -113,8 +135,18 @@ class Invalid(ValueError):
                     res[k]=v
         return res
 
+    @staticmethod
+    def _safe_append(adict, key, thing):
+        if not isinstance(thing, (list, dict)):
+            thing=[thing]
+        try:
+            adict[key].extend(thing)
+        except KeyError:
+            adict[key]=thing
+        
+
     def unpack_errors(self, force_dict=True):
-        if self.errors or self.subexceptions or force_dict:
+        if self.errors or force_dict:
             if self.message:
                 # drop the top level message if it is empty
                 result={None: [self.message]}
@@ -125,25 +157,37 @@ class Invalid(ValueError):
         
         if self.errors:
             for name, msglist in self.errors.iteritems():
-                result.setdefault(name, [])
-                result[name].extend(msglist)
-                
-        if self.subexceptions:
+                for m in msglist:
+                    if isinstance(m, Exception):
+                        try:
+                            unpacked=m.unpack_errors(force_dict=False)
+                        except AttributeError:
+                            self._safe_append(result, name, m.args[0])
+                        
+                        else:
+                            if isinstance(unpacked, dict):
+                                self._join_dicts(result, unpacked)
+                            elif unpacked:
+                                self._safe_append(result, name, unpacked)
+                    else:
+                        self._safe_append(result, name, m)
+        
+##         if self.subexceptions:
 
-            for name, excs in self.subexceptions.iteritems():
+##             for name, excs in self.subexceptions.iteritems():
 
-                for exc in excs:
-                    try:
-                        subd=exc.unpack_errors(force_dict=False)
+##                 for exc in excs:
+##                     try:
+##                         subd=exc.unpack_errors(force_dict=False)
 
-                        if isinstance(subd, dict):
-                            self._join_dicts(result, subd)
-                        elif subd:
-                            result.setdefault(name, [])
-                            result[name].append(subd)
-                    except AttributeError:
-                        result.setdefault(name, [])
-                        result[name].append(exc.args[0])
+##                         if isinstance(subd, dict):
+##                             self._join_dicts(result, subd)
+##                         elif subd:
+##                             result.setdefault(name, [])
+##                             result[name].append(subd)
+##                     except AttributeError:
+##                         result.setdefault(name, [])
+##                         result[name].append(exc.args[0])
 
 
         return result
@@ -245,7 +289,7 @@ class Schema(object):
             raise Invalid(_msg(self.msg,
                                "schema.error",
                                "Problems were found in the submitted data."),
-                          subexceptions=exceptions)
+                          exceptions)
         return res        
             
 
@@ -306,7 +350,7 @@ def either(*validators):
         for v in validators:
             try:
                 value=v(value)
-            except ValueError, e:
+            except Exception, e:
                 last_exception=e
             else:
                 return value
@@ -540,10 +584,14 @@ def fields_equal(msg=None, field=None):
     """
     def f(values):
         if len(set(values))!=1:
-            raise Invalid(_msg(msg,
-                               'fields_equal',
-                               "fields not equal"),
-                          field=field)
+            m=_msg(msg,
+                   'fields_equal',
+                   "fields not equal")
+            if field is None:
+                raise Invalid(m)
+            else:
+                raise Invalid({field: m})
+
         return values
     return f
 
@@ -554,9 +602,12 @@ def fields_match(name1, name2, msg=None, field=None):
     """
     def f(value):
         if value[name1]!=value[name2]:
-            raise Invalid(_msg(msg,
-                               'fields_match',
-                               'fields do not match'),
-                          field=field)
+            m=_msg(msg,
+                   'fields_match',
+                   'fields do not match')
+            if field is not None:
+                raise Invalid({field: m})
+            else:
+                raise Invalid(m)
         return value
     return f
