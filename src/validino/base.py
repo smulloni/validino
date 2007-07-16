@@ -547,7 +547,7 @@ def integer(msg=None):
     def f(value):
         try:
             return int(value)
-        except ValueError:
+        except (TypeError, ValueError):
             raise Invalid(_msg(msg,
                                "integer",
                                "not an integer"))
