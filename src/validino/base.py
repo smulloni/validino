@@ -233,7 +233,7 @@ class Schema(object):
         self.allow_missing=allow_missing
         self.allow_extra=allow_extra
 
-    def keys(self):
+    def _keys(self):
         schemakeys=set()
         for x in self.subvalidators:
             if isinstance(x, (list, tuple)):
@@ -249,7 +249,7 @@ class Schema(object):
         exceptions={}
         if not (self.allow_extra and self.allow_missing):
             inputkeys=set(data.keys())
-            schemakeys=self.keys()
+            schemakeys=self._keys()
             if not self.allow_extra:
                 if inputkeys.difference(schemakeys):
                     raise Invalid(_msg(self.msg,
