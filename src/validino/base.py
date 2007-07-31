@@ -469,11 +469,11 @@ def clamp_length(min=None, max=None, msg=None):
         if min is not None and vlen<min:
                 raise Invalid(_msg(msg,
                                    "minlen",
-                                   "too long"))
+                                   "too short"))
         if max is not None and vlen >max:
                 raise Invalid(_msg(msg,
                                    "maxlen",
-                                   "too short"))
+                                   "too long"))
         return value
     return f
 
