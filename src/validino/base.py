@@ -34,6 +34,16 @@ __all__=['Invalid',
          'translate']
 
 
+def _add_error_message(d, k, msg):
+    """
+    internal utility for adding an error message to a
+    dictionary of messages.
+    """
+    d.setdefault(k, [])
+    if msg not in d[k]:
+        d[k].append(msg)
+
+
 def _msg(msg, key, default):
     """
     internal message-handling routine.
@@ -86,11 +96,6 @@ class Invalid(Exception):
     def __init__(self,
                  *args,
                  **kw):
-#                 message=None,
-#                 field=None,
-#                 errors=None,
-#                 subexceptions=None):
-
         d={}
         p=[]
         for a in args:
@@ -107,13 +112,6 @@ class Invalid(Exception):
             self.message=None
 
         
-##         #ValueError.__init__(self, message)
-##         self.errors=self._normalize_dict(errors)
-##         self.subexceptions=self._normalize_dict(subexceptions)
-##         self.message=message
-##         self.field=field
-
-
     @staticmethod
     def _join_dicts(res, d):
         for k, v in d.iteritems():
@@ -143,6 +141,10 @@ class Invalid(Exception):
             adict[key].extend(thing)
         except KeyError:
             adict[key]=thing
+
+
+    def add_error_message(self, key, message):
+        _add_error_message(self.errors, key, message)
         
 
     def unpack_errors(self, force_dict=True):
@@ -172,24 +174,6 @@ class Invalid(Exception):
                     else:
                         self._safe_append(result, name, m)
         
-##         if self.subexceptions:
-
-##             for name, excs in self.subexceptions.iteritems():
-
-##                 for exc in excs:
-##                     try:
-##                         subd=exc.unpack_errors(force_dict=False)
-
-##                         if isinstance(subd, dict):
-##                             self._join_dicts(result, subd)
-##                         elif subd:
-##                             result.setdefault(name, [])
-##                             result[name].append(subd)
-##                     except AttributeError:
-##                         result.setdefault(name, [])
-##                         result[name].append(exc.args[0])
-
-
         return result
 
 
