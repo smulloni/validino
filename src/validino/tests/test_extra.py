@@ -21,8 +21,8 @@ def test_credit_card_1():
     cc='4000000000998'
     v=V.credit_card(msg="aha")
     assert v(cc)==cc
-    assert_invalid(lambda: v('pain chocolat'), 'aha')
-    assert_invalid(lambda: v(str(int(cc)-1)), 'aha')
+    assert_invalid(lambda: v('pain chocolat'), dict(cc_number=['aha']))
+    assert_invalid(lambda: v(str(int(cc)-1)), dict(cc_number=['aha']))
     v=V.credit_card(require_type=True,  msg='aha')
     assert v((cc, 'Visa'))==(cc, 'Visa')
 
@@ -30,12 +30,13 @@ def test_credit_card_1():
 def test_credit_card_2():    
     cc='4000000000998'
     invalid_cc=str(int(cc)-1)
-    s=V.Schema(dict(cc_card=(V.strip, V.not_empty("Please enter a credit card number")),
-                    cc_type=V.belongs(('Visa', 'Discover'), msg="belongs")))
+    validators=dict(cc_card=(V.strip, V.not_empty("Please enter a credit card number")),
+                    cc_type=V.belongs(('Visa', 'Discover'), msg="belongs"))
     v=V.credit_card(require_type=True,
                     cc_field='cc_card',
                     cc_type_field='cc_type')
-    s.subvalidators[('cc_card', 'cc_type')]=v                
+    validators[('cc_card', 'cc_type')]=v
+    s=V.Schema(validators)
                                                          
     data=dict(cc_card=cc,
               cc_type='Visa')
@@ -59,7 +60,25 @@ def test_credit_card_2():
     else:
         assert False, "there should be an error"
     
-
+def test_credit_card_3():
+    cc='4000000000998'
+    invalid_cc=str(int(cc)-1)
+    validators=dict(cc_card=(V.strip, V.not_empty("Please enter a credit card number")),
+                    cc_type=V.belongs(('Visa', 'Discover'), msg="belongs"))
+    v=V.credit_card(require_type=True,
+                    cc_field='cc_card',
+                    cc_type_field='cc_type')
+    validators[('cc_card', 'cc_type')]=v
+    s=V.Schema(validators)
+    data=dict(cc_card=invalid_cc,
+              cc_type='')
+    try:
+        s(data)
+    except V.Invalid, e:
+        errors=e.unpack_errors()
+        assert set(errors)==set(('cc_card', 'cc_type', None))
+    else:
+        assert False, "there should be an error"
     
 
 def test_url():
