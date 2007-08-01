@@ -66,7 +66,11 @@ def email(check_dns=False, msg=None):
     return f
 
 
-def credit_card(types=None, require_type=False, msg=None, cc_field=None, cc_type_field=None):
+def credit_card(types=None,
+                require_type=False,
+                msg=None,
+                cc_field='cc_number',
+                cc_type_field='cc_type'):
     if types is None:
         types=_cc.cards
     def f(values):
@@ -74,34 +78,40 @@ def credit_card(types=None, require_type=False, msg=None, cc_field=None, cc_type
             cardnumber, cc_type=values
         else:
             cardnumber, cc_type=values, None
+
+        exc=Invalid()
+        
+        type_ok=not require_type
+        
         if require_type and cc_type is None:
             m=_msg(msg,
                    "credit_card.require_type",
                    "no credit card type specified")
-            if cc_type_field is None:
-                raise Invalid(m)
-            else:
-                raise Invalid({cc_type_field: m})
+            exc.add_error_message(cc_type_field, m)
 
-        if not (cc_type is None) and cc_type not in types:
+            
+        elif not (cc_type is None) and cc_type not in types:
             m=_msg(msg,
                    "credit_card.type_check",
                    "unrecognized credit card type")
-            if cc_type_field is None:
-                raise Invalid(m)
-            else:
-                raise Invalid({cc_type_field: m})
+            exc.add_error_message(cc_type_field, m)
+
+        else:
+            type_ok=True
 
         try:
-            _cc.check_credit_card(cardnumber, cc_type)
-        except _cc.CreditCardValidationException, e:
+            if type_ok:
+                _cc.check_credit_card(cardnumber, cc_type)
+            else:
+                _cc.check_credit_card(cardnumber)
+        except _cc.CreditCardValidationException:
             m=_msg(msg,
                    "credit_card.invalid",
                    "invalid credit card number")
-            if cc_field is None:
-                raise Invalid(m)
-            else:
-                raise Invalid({cc_field: m})
+            exc.add_error_message(cc_field, m)
+
+        if exc.errors:
+            raise exc
         else:
             return values
         
