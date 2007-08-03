@@ -17,6 +17,8 @@ __all__=['Invalid',
          'excursion',
          'fields_equal',
          'fields_match',
+         'is_list',
+         'is_scalar',
          'not_equal',
          'integer',
          'not_empty',
@@ -30,6 +32,8 @@ __all__=['Invalid',
          'regex_sub',
          'Schema',
          'strip',
+         'to_list',
+         'to_scalar',
          'to_unicode',
          'translate']
 
@@ -310,6 +314,56 @@ def to_unicode(encoding='utf8', errors='strict', msg=None):
 
     return f
 
+
+def is_scalar(msg=None, listtypes=(list,)):
+    """
+    Raises an exception if the value is not a scalar.
+    """
+    def f(value):
+        if isinstance(value, listtypes):
+            raise Invalid(_msg(msg,
+                               'is_scalar',
+                               'expected scalar value'))
+        return value
+    return f
+
+def is_list(msg=None, listtypes=(list,)):
+    """
+    Raises an exception if the value is not a list.
+    """
+    def f(value):
+        if not isinstance(value, listtypes):
+            raise Invalid(_msg(msg,
+                               "is_list",
+                               "expected list value"))
+        return value
+    return f
+
+def to_scalar(listtypes=(list,)):
+    """
+    if the value is a list, return the first element.
+    Otherwise, return the value.
+
+    This raises no exceptions.
+    """
+    def f(value):
+        if isinstance(value, listtypes):
+            return value[0]
+        return value
+    return f
+
+def to_list(listtypes=(list,)):
+    """
+    if the value is a scalar, wrap it in a list.
+    Otherwise, return the value.
+
+    This raises no exceptions.
+    """
+    def f(value):
+        if not isinstance(value, listtypes):
+            return [value]
+        return value
+    return f
 
 def default(defaultValue):
     """

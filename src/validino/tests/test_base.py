@@ -1,6 +1,30 @@
 import validino as V
 from validino.util import partial
-from util import assert_invalid 
+from util import assert_invalid
+
+def test_is_scalar():
+    msg='sc'
+    v=V.is_scalar(msg=msg)
+    assert v(40)==40
+    assert_invalid(lambda: v([12]), msg)
+
+def test_is_list():
+    msg="list"
+    v=V.is_list(msg=msg)
+    assert v([40])==[40]
+    assert_invalid(lambda: v(40), msg)
+
+def test_to_scalar():
+    v=V.to_scalar()
+    assert v([40])==40
+    assert v(40)==40
+    assert v(range(40))==0
+
+def test_to_list():
+    v=V.to_list()
+    assert v(['a', 'b'])==['a', 'b']
+    assert v('a')==['a']
+    
     
 def test_clamp():
     msg='You are a pear'
