@@ -314,11 +314,6 @@ def test_to_unicode():
     assert v(s)==u
 
 
-def test_pluralize():
-    assert V.pluralize(3)==[3]
-    assert V.pluralize((3,))==(3,)
-
-
 def test_map():
     data=['pig', 'frog', 'lump']
     v=lambda value: map(V.clamp_length(max=4), value)

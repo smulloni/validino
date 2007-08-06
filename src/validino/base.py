@@ -27,7 +27,6 @@ __all__=['Invalid',
          'parse_date',
          'parse_datetime',
          'parse_time',
-         'pluralize',
          'regex',
          'regex_sub',
          'Schema',
@@ -431,11 +430,6 @@ def excursion(*validators):
         compose(*validators)(value)
         return value
     return f
-
-def pluralize(val):
-    if not isinstance(val, (list,tuple)):
-        return [val]
-    return val
 
 def equal(val, msg=None):
     def f(value):
