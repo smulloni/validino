@@ -6,8 +6,6 @@ from util import assert_invalid
 
 def test_msg():
     messages=dict(
-        belongs="zappo choice",
-        not_belongs="you can't use that one",
         integer="hey, I said use a number")
     with msg(messages):
         assert messages == getMessages()
