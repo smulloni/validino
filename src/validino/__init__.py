@@ -22,7 +22,17 @@
 ## OTHER DEALINGS IN THE SOFTWARE.
 
 """
+A data conversion and validation package.
 
+In typical use, you create a Schema with
+various subvalidators.  For instance:
+>>> import validino as V
+>>> validators=dict(username=(V.strip,
+...                           V.not_empty('Pledge enter a username'),
+...                           V.clamp_length(max=20)),
+...                 password=V.not_empty('Please enter a password'))
+>>> s=V.Schema(validators)
+>>> confirmed=s(dict(username='henry', password='dogwood'))
 """
 
 from validino.base import *

@@ -282,21 +282,25 @@ class Schema(object):
 
 def confirm_type(typespec, msg=None):
     def f(value):
-        if isinstance(value, typespec):
+        if isinstance(value, f.typespec):
             return value
-        raise Invalid(_msg(msg,
+        raise Invalid(_msg(f.msg,
                            "confirm_type",
                            "unexpected type"))
+    f.typespec=typespec
+    f.msg=msg
     return f
 
 def translate(mapping, msg=None):
     def f(value):
         try:
-            return mapping[value]
+            return f.mapping[value]
         except KeyError:
-            raise Invalid(_msg(msg,
+            raise Invalid(_msg(f.msg,
                                "belongs",
                                "invalid choice"))
+    f.mapping=mapping
+    f.msg=msg
     return f
 
 def to_unicode(encoding='utf8', errors='strict', msg=None):
@@ -305,12 +309,14 @@ def to_unicode(encoding='utf8', errors='strict', msg=None):
             return value
         else:
             try:
-                return value.decode(encoding, errors)
+                return value.decode(f.encoding, f.errors)
             except UnicodeError, e:
-                raise Invalid(_msg(msg,
+                raise Invalid(_msg(f.msg,
                                    'to_unicode',
                                    'decoding error'))
-
+    f.encoding=encoding
+    f.errors=errors
+    f.msg=msg
     return f
 
 
@@ -319,11 +325,13 @@ def is_scalar(msg=None, listtypes=(list,)):
     Raises an exception if the value is not a scalar.
     """
     def f(value):
-        if isinstance(value, listtypes):
-            raise Invalid(_msg(msg,
+        if isinstance(value, f.listtypes):
+            raise Invalid(_msg(f.msg,
                                'is_scalar',
                                'expected scalar value'))
         return value
+    f.listtypes=listtypes
+    f.msg=msg
     return f
 
 def is_list(msg=None, listtypes=(list,)):
@@ -331,11 +339,13 @@ def is_list(msg=None, listtypes=(list,)):
     Raises an exception if the value is not a list.
     """
     def f(value):
-        if not isinstance(value, listtypes):
-            raise Invalid(_msg(msg,
+        if not isinstance(value, f.listtypes):
+            raise Invalid(_msg(f.msg,
                                "is_list",
                                "expected list value"))
         return value
+    f.listtypes=listtypes
+    f.msg=msg    
     return f
 
 def to_scalar(listtypes=(list,)):
@@ -346,9 +356,10 @@ def to_scalar(listtypes=(list,)):
     This raises no exceptions.
     """
     def f(value):
-        if isinstance(value, listtypes):
+        if isinstance(value, f.listtypes):
             return value[0]
         return value
+    f.listtypes=listtypes
     return f
 
 def to_list(listtypes=(list,)):
@@ -359,9 +370,10 @@ def to_list(listtypes=(list,)):
     This raises no exceptions.
     """
     def f(value):
-        if not isinstance(value, listtypes):
+        if not isinstance(value, f.listtypes):
             return [value]
         return value
+    f.listtypes=listtypes
     return f
 
 def default(defaultValue):
@@ -372,8 +384,9 @@ def default(defaultValue):
     """
     def f(value):
         if value is None:
-            return defaultValue
+            return f.defaultValue
         return value
+    f.defaultValue=defaultValue
     return f
         
 def either(*validators):
@@ -433,34 +446,40 @@ def excursion(*validators):
 
 def equal(val, msg=None):
     def f(value):
-        if value==val:
+        if value==f.val:
             return value
-        raise Invalid(_msg(msg, 'eq', 'invalid value'))
+        raise Invalid(_msg(f.msg, 'eq', 'invalid value'))
+    f.val=val
+    f.msg=msg
     return f
 
 def not_equal(val, msg=None):
     def f(value):
-        if value!=val:
+        if value!=f.val:
             return value
-        raise Invalid(_msg(msg, 'eq', 'invalid value'))
+        raise Invalid(_msg(f.msg, 'eq', 'invalid value'))
+    f.val=val
+    f.msg=msg
     return f
 
 def empty(msg=None):
     def f(value):
         if value == '' or value is None:
             return value
-        raise Invalid(_msg(msg,
+        raise Invalid(_msg(f.msg,
                            "empty",
                            "No value was expected"))
+    f.msg=msg
     return f
 
 def not_empty(msg=None):
     def f(value):
         if value!='' and value != None:
             return value
-        raise Invalid(_msg(msg,
+        raise Invalid(_msg(f.msg,
                            'notempty',
                            "A non-empty value was expected"))
+    f.msg=msg
     return f
 
 def strip(value):
@@ -480,15 +499,18 @@ def clamp(min=None, max=None, msg=None):
     of which are optional).
     """
     def f(value):
-        if min is not None and value < min:
-            raise Invalid(_msg(msg,
+        if f.min is not None and value < f.min:
+            raise Invalid(_msg(f.msg,
                                "min",
                                "value below minimum"))
-        if max is not None and value > max:
-            raise Invalid(_msg(msg,
+        if f.max is not None and value > f.max:
+            raise Invalid(_msg(f.msg,
                                "max",
                                "value above maximum"))
         return value
+    f.min=min
+    f.max=max
+    f.msg=msg
     return f
 
 def clamp_length(min=None, max=None, msg=None):
@@ -498,15 +520,18 @@ def clamp_length(min=None, max=None, msg=None):
     """
     def f(value):
         vlen=len(value)
-        if min is not None and vlen<min:
-                raise Invalid(_msg(msg,
+        if f.min is not None and vlen<f.min:
+                raise Invalid(_msg(f.msg,
                                    "minlen",
                                    "too short"))
-        if max is not None and vlen >max:
-                raise Invalid(_msg(msg,
+        if f.max is not None and vlen >f.max:
+                raise Invalid(_msg(f.msg,
                                    "maxlen",
                                    "too long"))
         return value
+    f.min=min
+    f.max=max
+    f.msg=msg
     return f
 
 def belongs(domain, msg=None):
@@ -515,11 +540,13 @@ def belongs(domain, msg=None):
     specified.
     """
     def f(value):
-        if value in domain:
+        if value in f.domain:
             return value
-        raise Invalid(_msg(msg,
+        raise Invalid(_msg(f.msg,
                            "belongs",
                            "invalid choice"))
+    f.domain=domain
+    f.msg=msg
     return f
 
 def not_belongs(domain, msg=None):
@@ -528,11 +555,13 @@ def not_belongs(domain, msg=None):
     specified.
     """
     def f(value):
-        if value not in domain:
+        if value not in f.domain:
             return value
-        raise Invalid(_msg(msg,
+        raise Invalid(_msg(f.msg,
                            "not_belongs",
                            "invalid choice"))
+    f.domain=domain
+    f.msg=msg
     return f
 
 
@@ -545,11 +574,13 @@ def parse_time(format, msg=None):
     """
     def f(value):
         try:
-            return time.strptime(value, format)
+            return time.strptime(value, f.format)
         except ValueError:
-            raise Invalid(_msg(msg,
+            raise Invalid(_msg(f.msg,
                                'parse_time',
                                "invalid time"))
+    f.format=format
+    f.msg=msg
     return f
 
 def parse_date(format, msg=None):
@@ -558,8 +589,10 @@ def parse_date(format, msg=None):
     """
     
     def f(value):
-        v=parse_time(format, msg)(value)
+        v=parse_time(f.format, f.msg)(value)
         return datetime.date(*v[:3])
+    f.format=format
+    f.msg=msg
     return f
 
 def parse_datetime(format, msg=None):
@@ -568,8 +601,10 @@ def parse_datetime(format, msg=None):
     """
     
     def f(value):
-        v=parse_time(format, msg)(value)
+        v=parse_time(f.format, f.msg)(value)
         return datetime.datetime(*v[:6])
+    f.format=format
+    f.msg=msg
     return f                
 
 def integer(msg=None):
@@ -580,9 +615,10 @@ def integer(msg=None):
         try:
             return int(value)
         except (TypeError, ValueError):
-            raise Invalid(_msg(msg,
+            raise Invalid(_msg(f.msg,
                                "integer",
                                "not an integer"))
+    f.msg=msg
     return f
 
 
@@ -593,12 +629,14 @@ def regex(pat, msg=None):
     
     """
     def f(value):
-        m=re.match(pat, value)
+        m=re.match(f.pat, value)
         if not m:
-            raise Invalid(_msg(msg,
+            raise Invalid(_msg(f.msg,
                                'regex',
                                "does not match pattern"))
         return value
+    f.pat=pat
+    f.msg=msg
     return f
 
 def regex_sub(pat, sub):
@@ -606,7 +644,9 @@ def regex_sub(pat, sub):
     performs regex substitution on the input value.
     """
     def f(value):
-        return re.sub(pat, sub, value)
+        return re.sub(f.pat, f.sub, value)
+    f.pat=pat
+    f.sub=sub
     return f
 
 def fields_equal(msg=None, field=None):
@@ -616,15 +656,16 @@ def fields_equal(msg=None, field=None):
     """
     def f(values):
         if len(set(values))!=1:
-            m=_msg(msg,
+            m=_msg(f.msg,
                    'fields_equal',
                    "fields not equal")
-            if field is None:
+            if f.field is None:
                 raise Invalid(m)
             else:
-                raise Invalid({field: m})
-
+                raise Invalid({f.field: m})
         return values
+    f.msg=msg
+    f.field=field
     return f
 
 def fields_match(name1, name2, msg=None, field=None):
@@ -633,13 +674,17 @@ def fields_match(name1, name2, msg=None, field=None):
     'name2' in value (which must be a dict) are identical.
     """
     def f(value):
-        if value[name1]!=value[name2]:
-            m=_msg(msg,
+        if value[f.name1]!=value[f.name2]:
+            m=_msg(f.msg,
                    'fields_match',
                    'fields do not match')
-            if field is not None:
-                raise Invalid({field: m})
+            if f.field is not None:
+                raise Invalid({f.field: m})
             else:
                 raise Invalid(m)
         return value
+    f.name1=name1
+    f.name2=name2
+    f.msg=msg
+    f.field=field
     return f
