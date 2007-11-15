@@ -6,7 +6,7 @@ import os
 import sys
 sys.path.insert(0, 'src')
 
-version='0.1'
+from validino import __version__
 description="a simple validation framework"
 long_description="""
 validino is a simple validation framework with a functional
@@ -32,7 +32,7 @@ setup(author='Jacob Smullyan',
       platforms=platforms,
       license='MIT',
       name='validino',
-      version=version,
+      version=__version__,
       zip_safe=True,
       packages=['validino'],
       package_dir={'' : 'src'},

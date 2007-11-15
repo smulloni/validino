@@ -37,3 +37,4 @@ various subvalidators.  For instance:
 
 from validino.base import *
 from validino.extra import *
+__version__='0.2'
