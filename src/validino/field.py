@@ -1,3 +1,5 @@
+import validino.base as V
+
 class Field(object):
 
     _default_attrs={}
