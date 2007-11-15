@@ -2,6 +2,8 @@ import datetime
 import re
 import time
 
+from .messages import getMessages
+
 __all__=['Invalid',
          'check',
          'clamp',
@@ -52,7 +54,7 @@ def _msg(msg, key, default):
     internal message-handling routine.
     """
     if msg is None:
-        return default
+        msg=getMessages()
     if isinstance(msg, basestring):
         return msg
     return msg.get(key, default)

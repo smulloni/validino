@@ -8,7 +8,7 @@ def assert_invalid(f, msg):
         if isinstance(msg, basestring):
             assert e.message==msg, "expected '%s', got '%s'" % (msg, e.message)
         else:
-            assert e.errors==msg
+            assert e.errors==msg, "expected '%s', got '%s'" % (msg, e.errors)
     else:
         assert False, "exception should be raised"
 
