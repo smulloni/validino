@@ -1,10 +1,25 @@
 
 from threading import local
+from pkg_resources import resource_stream
+
+def loadMessages(location='messages.txt'):
+    fp=resource_stream(__name__, location)
+    d={}
+    for line in fp:
+        line=line.strip()
+        if (not line) or line.startswith('#'):
+            continue
+        key, value=line.split(',', 1)
+        d[key]=value
+    return d
 
 _messagelocal=local()
-_messagelocal.messages={}
+_messagelocal.messages=loadMessages()
 
-__all__=['getMessages']
+def getMessages():
+    return _messagelocal.messages
+
+__all__=['getMessages', 'loadMessages']
 
 try:
     from contextlib import contextmanager
@@ -22,7 +37,5 @@ else:
             
     __all__.append('msg')
     
-def getMessages():
-    return _messagelocal.messages
 
 

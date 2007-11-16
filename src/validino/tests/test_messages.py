@@ -10,5 +10,5 @@ def test_msg():
     with msg(messages):
         assert messages == getMessages()
         assert_invalid(lambda: V.integer()('lump'), messages['integer'])
-    assert getMessages() == {}
+    assert getMessages() != messages
     assert_invalid(lambda: V.integer()('lump'), "not an integer")

@@ -1,0 +1,35 @@
+# The following is a list of message keys and values, comma-separated.
+# comment lines and blank lines are skipped.
+
+schema.extra,extra keys in input
+schema.missing,missing keys in input
+schema.error,problems were found in the submitted data
+confirm_type,unexpected type
+belongs,invalid choice
+to_unicode,decoding error
+is_scalar,expected scalar value
+is_list,expected list value
+eq,invalid value
+empty,no value was expected
+notempty,a non-empty value was expected
+min,value below minimum
+max,value below maximum
+minlen,too short
+maxlen,too long
+not_belongs,invalid choice
+parse_time,invalid time
+integer,not an integer
+regex,does not match pattern
+fields_equal,fields not equal
+fields_match,fields do not match
+email.format,invalid format
+email.username,invalid username
+email.domain,invalid domain
+email.socket_error,socket error
+email.domain_error,no such domain
+credit_card.require_type,no credit card type specified
+credit_card.type_check,unrecognized credit card type
+credit_card.invalid,invalid credit card number
+url.schema,schema not allowed
+url.http_error,http error
+url.not_exists,url not OK
