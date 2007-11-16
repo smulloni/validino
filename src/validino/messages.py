@@ -19,7 +19,10 @@ _messagelocal.messages=loadMessages()
 def getMessages():
     return _messagelocal.messages
 
-__all__=['getMessages', 'loadMessages']
+def setMessages(messages):
+    _messagelocal.messages=messages
+
+__all__=['getMessages', 'setMessages', 'loadMessages']
 
 try:
     from contextlib import contextmanager
