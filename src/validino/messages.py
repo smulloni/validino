@@ -2,8 +2,8 @@
 from threading import local
 from pkg_resources import resource_stream
 
-def loadMessages(location='messages.txt'):
-    fp=resource_stream(__name__, location)
+def loadMessages(relative_to=__name__, location='messages.txt'):
+    fp=resource_stream(relative_to, location)
     d={}
     for line in fp:
         line=line.strip()
