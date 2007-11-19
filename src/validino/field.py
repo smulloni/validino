@@ -17,7 +17,7 @@ class Field(object):
     def _make_validator(self, validators):
         validators=self._default_validators + validators
         if not self.required:
-            return V.either(V.empty(), *validators)
+            return V.either(V.empty(), V.compose(*validators))
         else:
             return V.compose(*validators)
 
