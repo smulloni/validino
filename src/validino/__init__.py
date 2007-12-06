@@ -38,4 +38,6 @@ various subvalidators.  For instance:
 from validino.base import *
 from validino.extra import *
 from validino.messages import *
-__version__='0.2.1'
+from validino.field import *
+
+__version__='0.2.2'
