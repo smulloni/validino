@@ -1,0 +1,3 @@
+Validino is a small Python validation library, particularly useful for validating and converting input data in web applications.
+
+Validino owes much to Ian Bicking's [FormEncode](http://formencode.org) in spirit and purpose, except that it eschews the declarative style used there in favor of a functional one.  If you are someone who doesn't like declarative mini-languages, then you might like Validino.  Otherwise, use [FormEncode](http://formencode.org).
